@@ -14,6 +14,7 @@
 
 #include "modules/core/allocator/interface/base_allocator.h"
 #include "modules/core/allocator/include/cpu_allocator.h"
+#include "modules/core/allocator/include/cuda_allocator.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
@@ -26,6 +27,19 @@ std::shared_ptr<BaseAllocator> get_allocator_from_platform(
     switch (platform) {
     case PlatformType::CPU:
         result = std::make_shared<cpu_allocator>(size);
+        break;
+    case PlatformType::CUDA:
+        switch (flag & 0x3)
+        {
+        case 0:
+            result = std::make_shared<CUDAUnifiedAllocator>(size);
+            break;
+        case 1:
+            result = std::make_shared<CUDAGlobalAllocator>(size);
+            break;
+        default:
+            break;
+        }
         break;
     default:
         break;

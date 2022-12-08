@@ -39,7 +39,7 @@ mkdir -p ${build_dir}
 cd ${build_dir} || exit 0
 
 cmake \
-    -DENABLE_CUDA="${CUDA_SW}" \
+    -DWITH_CUDA_SUPPORT="${CUDA_SW}" \
     -DBUILD_TEST=ON \
     -DBUILD_BENCHMARK=ON \
     -DCMAKE_BUILD_TYPE=Release \

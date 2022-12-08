@@ -52,7 +52,6 @@ private:
 std::unique_ptr<CUDAMemoryManager> memory_pool_ptr(new CUDAMemoryManager);
 
 namespace {
-
 class CUDAMemoryPool {
 public:
     // TODO
@@ -115,8 +114,8 @@ public:
 
 }  // namespace
 
-CUDAAllocator::CUDAAllocator(size_t size) : _data_addr(nullptr) {
-    cudaMalloc(&_data_addr, size);
+CUDAGlobalAllocator::CUDAGlobalAllocator(size_t size) : _data_addr(nullptr) {
+    CUDA_CHECK(cudaMalloc((void **)&_data_addr, size));
 
     if (!_data_addr) {
 #if (SIZE_MAX == 0xFFFFFFFF)  /// 32bit
@@ -130,14 +129,45 @@ CUDAAllocator::CUDAAllocator(size_t size) : _data_addr(nullptr) {
     }
 }
 
-CUDAAllocator::~CUDAAllocator() {
+CUDAGlobalAllocator::~CUDAGlobalAllocator() {
     if (_data_addr) {
-        cudaFree(_data_addr);
+        CUDA_CHECK(cudaFree(_data_addr));
         _data_addr = nullptr;
     }
 }
 
-bool CUDAAllocator::get_data(void** ptr_data_addr) const {
+bool CUDAGlobalAllocator::get_data(void** ptr_data_addr) const {
+    if (ptr_data_addr) {
+        *ptr_data_addr = _data_addr;
+        return true;
+    }
+    return false;
+}
+
+
+CUDAUnifiedAllocator::CUDAUnifiedAllocator(size_t size) : _data_addr(nullptr) {
+    CUDA_CHECK(cudaMallocManaged((void **)&_data_addr, size));
+
+    if (!_data_addr) {
+#if (SIZE_MAX == 0xFFFFFFFF)  /// 32bit
+        LOG_ERR("Failed to allocate %u bytes memory from GPU platform", size);
+#elif (SIZE_MAX == 0xFFFFFFFFFFFFFFFF)  /// 64bit
+        LOG_ERR("Failed to allocate %zu bytes memory from GPU platform", size);
+#else
+        LOG_ERR("Failed to allocate %d bytes memory from GPU platform", size);
+#endif
+        return;
+    }
+}
+
+CUDAUnifiedAllocator::~CUDAUnifiedAllocator() {
+    if (_data_addr) {
+        CUDA_CHECK(cudaFree(_data_addr));
+        _data_addr = nullptr;
+    }
+}
+
+bool CUDAUnifiedAllocator::get_data(void** ptr_data_addr) const {
     if (ptr_data_addr) {
         *ptr_data_addr = _data_addr;
         return true;

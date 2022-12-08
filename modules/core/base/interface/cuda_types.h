@@ -15,10 +15,11 @@
 #pragma once
 
 #include <cuda_runtime.h>
+
 #include <cstdio>
 #include <cstdlib>
-
 #include <memory>
+#include <vector>
 
 #include "flycv_namespace.h"
 #include "macro_export.h"
@@ -26,7 +27,7 @@
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
-#define CHECK(call)                                                         \
+#define CUDA_CHECK(call)                                                    \
     do {                                                                    \
         const cudaError_t error_code = call;                                \
         if (error_code != cudaSuccess) {                                    \
@@ -42,30 +43,44 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 /**
  * @brief cuda memory types.
  */
-enum class CUDAMemoryType {
-    GENERAL,
-    UNIFIED,
-    SHARED,
-    UNDEFINED
+enum class CUDAMemoryType { GENERAL, UNIFIED, CONSTANT, UNDEFINED };
+
+struct CUDADeviceAttr {
+    //! CUDA integrated with the memory subsystem
+    int integrated_flag;
+    //! CUDA coherently access managed memory
+    int coherent_flag;
+    //! CUDA device properties
+    cudaDeviceProp device_prop;
 };
 
 /**
  * @brief cuda device info.
  */
-struct CUDADeviceInfo {
-    //! GUDA Driver Version
+class CUDADeviceInfo {
+public:
+    static std::shared_ptr<CUDADeviceInfo> get_instance();
+    ~CUDADeviceInfo(){};
+
+private:
+    CUDADeviceInfo();
+
+public:
+    //! CUDA Device ID
+    int device_count;
+    //! CUDA Driver Version
     int driver_version;
-    //! GUDA Runtime Version
+    //! CUDA Runtime Version
     int runtime_version;
-    //! CUDA Device Property
-    cudaDeviceProp device_prop;
+    //! CUDA device attribute
+    std::vector<CUDADeviceAttr> device_attrs;
 };
 
 class Stream {
 public:
     Stream() : _stream(0) {
         cudaStreamCreate(&_stream);
-        CHECK(cudaGetLastError());
+        CUDA_CHECK(cudaGetLastError());
     }
 
     ~Stream() {

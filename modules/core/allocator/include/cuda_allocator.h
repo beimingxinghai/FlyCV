@@ -20,11 +20,22 @@
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
-class CUDAAllocator : public BaseAllocator {
+class CUDAGlobalAllocator : public BaseAllocator {
 public:
-    CUDAAllocator(size_t elem_size);
-    CUDAAllocator(int rows, int cols);
-    ~CUDAAllocator();
+    CUDAGlobalAllocator(size_t elem_size);
+    ~CUDAGlobalAllocator();
+
+    bool get_data(void** ptr_data_addr) const override;
+
+private:
+    size_t _size;
+    void* _data_addr;
+};
+
+class CUDAUnifiedAllocator : public BaseAllocator {
+public:
+    CUDAUnifiedAllocator(size_t elem_size);
+    ~CUDAUnifiedAllocator();
 
     bool get_data(void** ptr_data_addr) const override;
 
@@ -36,7 +47,6 @@ private:
 class CUDAPoolAllocator : public BaseAllocator {
 public:
     CUDAPoolAllocator(int pool_id, size_t elem_size);
-    CUDAPoolAllocator(int pool_id, int rows, int cols);
     ~CUDAPoolAllocator();
 
     bool get_data(void** ptr_data_addr) const override;

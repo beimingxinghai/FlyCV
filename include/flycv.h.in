@@ -74,6 +74,9 @@
 #cmakedefine WITH_FCV_CIRCLE
 #cmakedefine WITH_FCV_LINE
 
+/* cuda support */
+#cmakedefine WITH_CUDA_SUPPORT
+
 /* core module header file reference */
 #ifdef BUILD_FCV_CORE
 #ifdef WITH_FCV_BASE
@@ -84,6 +87,9 @@
 #endif
 #ifdef WITH_FCV_MAT
 #include "modules/core/mat/interface/mat.h"
+#ifdef WITH_CUDA_SUPPORT
+#include "modules/core/mat/interface/cuda_mat.h"
+#endif
 #endif
 #ifdef WITH_FCV_ALLOCATOR
 #include "modules/core/allocator/interface/base_allocator.h"

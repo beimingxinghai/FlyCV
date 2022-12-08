@@ -43,16 +43,18 @@ if (BUILD_FCV_IMG_DRAW)
 endif()
 
 # ==================CUDA=======================
-if(ENABLE_CUDA)
+option(WITH_CUDA_SUPPORT "Turn ON CUDA support" OFF)
+option(WITH_CUDA_SCP "Turn ON CUDA Separate Compilation" ON)
+if(WITH_CUDA_SUPPORT)
     find_package(CUDA REQUIRED)
 
     include_directories(${CUDA_INCLUDE_DIRS})
     list(APPEND FCV_LINK_DEPS ${CUDA_LIBRARIES})
 
     # If CMake doesn't support separable compilation, complain
-    if(CUDA_SCP AND CMAKE_VERSION VERSION_LESS "2.8.10.1")
+    if(WITH_CUDA_SCP AND CMAKE_VERSION VERSION_LESS "2.8.10.1")
         message(SEND_ERROR "CUDA_SEPARABLE_COMPILATION isn't supported for CMake versions less than 2.8.10.1")
-        set(CUDA_SCP OFF)
+        set(WITH_CUDA_SCP OFF)
     endif()
 # --------------------------------------------------------------------------- #
 set(ARCH_FLAGS )
@@ -95,17 +97,18 @@ endif()
 endif()
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${ARCH_FLAGS}")
 # --------------------------------------------------------------------------- #
-    set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-    set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc)
-    # Explicitly set the cuda host compiler.
-    # Because the default host compiler selected by cmake maybe wrong.
-    set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-    enable_language(CUDA)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-fPIC,-Wall,-fvisibility=hidden")
-    set(CUDA_NVCC_FLAGS_DEBUG "-g")
-    set(CUDA_NVCC_FLAGS_RELEASE "-O3")
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${CUDA_NVCC_FLAGS}")
-    set(CMAKE_CUDA_STANDARD 11)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc)
+# Explicitly set the cuda host compiler.
+# Because the default host compiler selected by cmake maybe wrong.
+set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+enable_language(CUDA)
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-fPIC,-Wall,-fvisibility=hidden")
+set(CUDA_NVCC_FLAGS_DEBUG "-g")
+set(CUDA_NVCC_FLAGS_RELEASE "-O3")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${CUDA_NVCC_FLAGS}")
+set(CMAKE_CUDA_STANDARD 11)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
 endif()
 # =============================================

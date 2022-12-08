@@ -19,7 +19,7 @@
 
 #include <vector>
 
-#include "falconcv_namespace.h"
+#include "flycv_namespace.h"
 #include "modules/core/allocator/interface/base_allocator.h"
 #include "modules/core/base/interface/basic_types.h"
 #include "modules/core/base/interface/log.h"
@@ -42,14 +42,14 @@ public:
             int width,
             int height,
             FCVImageType type,
-            int flags = 0,
             int stride = 0,
+            int flag = 0,
             PlatformType platform = PlatformType::CUDA);
     CudaMat(
             Size size,
             FCVImageType type,
-            int flags = 0,
             int stride = 0,
+            int flag = 0,
             PlatformType platform = PlatformType::CUDA);
 
 
@@ -115,6 +115,9 @@ public:
     //! returns the element size in bytes of step
     int stride() const;
 
+    // ! returns the memory flag
+    int flag() const;
+
     //! returns element type
     FCVImageType type() const;
 
@@ -135,15 +138,32 @@ public:
 
     //! returns reference to pixel location template version
     template<typename T>
-    T& at(int x, int y, int c = 0);
+    T& at(int x, int y, int c = 0) {
+        return *reinterpret_cast<T*>(get_pixel_address(x, y, c));
+    }
+
     template<typename T>
-    const T& at(int x, int y, int c = 0) const
+    const T& at(int x, int y, int c = 0) const {
+        return *reinterpret_cast<T*>(get_pixel_address(x, y, c));
+    }
 
     //! returns pointer to pixel location template version
-    template <typename _Tp>
-    _Tp* ptr(int x, int y, int c = 0);
-    template <typename _Tp>
-    const _Tp* ptr(int x, int y, int c = 0) const;
+    template <typename T>
+    T* ptr(int x, int y, int c = 0) {
+        return *reinterpret_cast<T*>(get_pixel_address(x, y, c));
+    }
+
+    template <typename T>
+    const T* ptr(int x, int y, int c = 0) const {
+        return *reinterpret_cast<T*>(get_pixel_address(x, y, c));
+    }
+
+    //! returns true i the CudaMat data is continuous
+    //! (i.e. when there are no gaps between successive rows)
+    bool is_continuous() const;
+
+    //!  returns GPU memory info
+    CUDAMemoryType memory_type() const;
 
     /** @brief Converts an CudaMat array to another data type with optional scaling.(Blocking call)
     The method converts source pixel values to the target data type. saturate_cast\<\> is applied at
@@ -154,7 +174,7 @@ public:
     @param scale optional scale factor.
     @param shift optional delta added to the scaled values.
      */
-    void convert_to(CudaMat& dst, FCVImageType rtype, double scale = 1.0, double shift = 0.0) const;
+    int convert_to(CudaMat& dst, FCVImageType rtype, double scale = 1.0, double shift = 0.0) const;
 
     /** @brief Converts an CudaMat array to another data type with optional scaling.(Non-Blocking call)
     The method converts source pixel values to the target data type. saturate_cast\<\> is applied at
@@ -166,40 +186,90 @@ public:
     @param scale optional scale factor.
     @param shift optional delta added to the scaled values.
      */
-    void convert_to(CudaMat& dst, FCVImageType rtype, Stream& stream, double scale = 1.0, double shift = 0.0) const;
+    int convert_to(CudaMat& dst, FCVImageType rtype, Stream& stream, double scale = 1.0, double shift = 0.0) const;
 
-    /** @brief Copies the CudaMat to another device memory. (Blocking call)
+    /** @brief Copies the CudaMat to another memory. (Blocking call)
     @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
     reallocated.
      */
     void copy_to(CudaMat& dst) const;
 
-    /** @brief Copies the CudaMat to another device memory. (Non-Blocking call)
+    /** @brief Copies the CudaMat to another memory. (Non-Blocking call)
     @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
     reallocated.
     @param stream cuda stream for bound
      */
     void copy_to(CudaMat& dst, Stream& stream) const;
 
-    //! returns true i the CudaMat data is continuous
-    //! (i.e. when there are no gaps between successive rows)
-    bool is_continuous() const;
+    /** @overload
+    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
+    reallocated.
+    @param mask Operation mask of the same size as \*this. Its non-zero elements indicate which matrix
+    elements need to be copied. The mask has to be of type unsigned char and can have 1 or multiple channels.
+    */
+    int copy_to(CudaMat& dst, CudaMat& mask) const;
 
-    //!  returns GPU memory info
-    CUDAMemoryType memory_type() const;
+    /** @overload
+    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
+    reallocated.
+    @param mask Operation mask of the same size as \*this. Its non-zero elements indicate which matrix
+    elements need to be copied. The mask has to be of type unsigned char and can have 1 or multiple channels.
+    @param stream cuda stream for bound
+    */
+    int copy_to(CudaMat& dst, CudaMat& mask, Stream& stream) const;
+
+    /** @overload
+      * copy src to the area oriented of dst, so the size of dst cannot samller than src's.
+    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
+    return.
+    @param rect dst rect Rect_(T x, T y, T width, T height).
+    */
+    int copy_to(CudaMat& dst, Rect& rect) const;
+
+    /** @overload
+      * copy src to the area oriented of dst, so the size of dst cannot samller than src's.
+    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
+    return.
+    @param rect dst rect Rect_(T x, T y, T width, T height).
+    @param stream cuda stream for bound
+    */
+    int copy_to(CudaMat& dst, Rect& rect, Stream& stream) const;
+
+    /** @brief Computes a dot-product of two vectors.
+    The method computes a dot-product of two matrices. The vectors must have the same size and type. If the matrices have more than one channel,
+    the dot products from all the channels are summed together.
+    @param m another dot-product operand.
+     */
+    double dot(CudaMat& m) const;
+
+    /** @brief Computes a dot-product of two vectors.
+    The method computes a dot-product of two matrices. The vectors must have the same size and type. If the matrices have more than one channel,
+    the dot products from all the channels are summed together.
+    @param m another dot-product operand.
+    @param stream cuda stream for bound
+     */
+    double dot(CudaMat& m, Stream& stream) const;
+
+    /** @brief Compute the inverse of a matrix.
+    The method performs a matrix inversion by means of matrix expressions. This means that a temporary
+    matrix inversion object is returned by the method and can be used further as a part of more complex
+    matrix expressions or can be assigned to a matrix.
+    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
+    return
+     */
+    bool invert(CudaMat& dst) const;
+
+    /** @brief Compute the inverse of a matrix.
+    The method performs a matrix inversion by means of matrix expressions. This means that a temporary
+    matrix inversion object is returned by the method and can be used further as a part of more complex
+    matrix expressions or can be assigned to a matrix.
+    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
+    return
+    @param stream cuda stream for bound
+     */
+    bool invert(CudaMat& dst, Stream& stream) const;
 
 private:
-    /*! includes several bit-fields:
-    - the magic signature
-    - continuity flag 1bit
-    - use memory pool 1bit
-    - use general/unified memory 3bit
-      - 1: use general memory
-      - 2: use unified memory
-      - 3: use share memory
-    */
-    int _flag;
-
     //! the number of width and height
     int _width;
     int _height;
@@ -209,6 +279,18 @@ private:
 
     //! a distance between successive rows in bytes; includes the gap if any
     int _stride;
+
+    /*! includes several bit-fields:
+    - use general/unified memory 3bit
+      - 0: use unified memory
+      - 1: use general memory
+      - 2: use constant memory
+    - use memory pool 1bit
+      - 4: use memory pool 0: not use 1: use
+    - continuity flag 1bit
+      - 5: whether data address continue 0: continue 1: not continue
+    */
+    int _flag;
 
     //! total size in bytes
     uint64_t _total_byte_size;
@@ -238,7 +320,10 @@ private:
     void* get_pixel_address(int x, int y, int c) const;
 
     //! data allocator, manage different alloc method of image data memory
-    std::shared_ptr<BaseAllocator> allocator;
+    std::shared_ptr<BaseAllocator> _allocator;
 };
+
+template<typename T>
+CudaMat allocate_cudamat(int width, int height, int channels);
 
 G_FCV_NAMESPACE1_END()
