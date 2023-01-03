@@ -137,7 +137,7 @@ static void copy_mask(
 }
 
 // dst = src
-void CudaMat::copy_to(CudaMat& dst) const {
+void CudaMat::copy_to(CudaMat& dst, Stream& stream) const {
     if (dst.empty()) {
         dst = CudaMat(_width, _height, _type, _stride);
     }
@@ -153,7 +153,7 @@ void CudaMat::copy_to(CudaMat& dst) const {
 }
 
 // dst = src if mask != 0
-int CudaMat::copy_to(CudaMat& dst, CudaMat& mask) const {
+int CudaMat::copy_to(CudaMat& dst, CudaMat& mask, Stream& stream) const {
     TypeInfo mask_type_info;
     int status = get_type_info(mask.type(), mask_type_info);
 
@@ -221,7 +221,7 @@ int CudaMat::copy_to(CudaMat& dst, CudaMat& mask) const {
 @param dst output array
 @param rect, as specified in Rect_(T x, T y, T width, T height)
 */
-int CudaMat::copy_to(CudaMat& dst, Rect& rect) const {
+int CudaMat::copy_to(CudaMat& dst, Rect& rect, Stream& stream) const {
     TypeInfo type_info;
     int status = get_type_info(_type, type_info);
 

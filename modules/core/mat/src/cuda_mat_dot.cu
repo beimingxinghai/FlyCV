@@ -49,7 +49,7 @@ __global__ void reduce_shared(double* d_x, double* d_y, int N) {
     }
 }
 
-double CudaMat::dot(CudaMat& m) const {
+double CudaMat::dot(CudaMat& m, Stream& stream) const {
     if (m.empty()) {
         m = CudaMat(_width, _height, _type);
     }

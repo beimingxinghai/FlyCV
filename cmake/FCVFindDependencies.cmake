@@ -96,6 +96,10 @@ else()
 endif()
 endif()
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${ARCH_FLAGS}")
+
+if(CUDA_VERSION_MAJOR VERSION_GREATER_EQUAL "7")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --default-stream per-thread")
+endif()
 # --------------------------------------------------------------------------- #
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc)
@@ -110,5 +114,6 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${CUDA_NVCC_FLAGS}")
 set(CMAKE_CUDA_STANDARD 11)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
+message("CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}")
 endif()
 # =============================================

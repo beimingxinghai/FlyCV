@@ -26,6 +26,7 @@
 #include "modules/core/base/interface/macro_ns.h"
 #include "modules/core/basic_math/interface/basic_math.h"
 #include "modules/core/base/interface/cuda_types.h"
+#include "modules/core/mat/interface/mat.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
@@ -59,45 +60,33 @@ public:
     //! destructor - calls release()
     ~CudaMat();
 
-    /** @brief Performs data upload to CudaMat (Blocking call)
+    /** @brief Performs data upload to CudaMat
+    This function copies data from host memory to device memory.
+    stream is Null, As being a blocking call, it is guaranteed that the
+    copy operation is finished when this function returns.
 
-    This function copies data from host memory to device memory. As being a
-    blocking call, it is guaranteed that the copy operation is finished when
-    this function returns.
-    */
-    void upload(CudaMat host);
-
-    /** @brief Performs data upload to CudaMat (Non-Blocking call)
-
-    This function copies data from host memory to device memory. As being a
-    non-blocking call, this function may return even if the copy operation is
-    not finished.
+    stream is not Null, As being a non-blocking call, this function
+    may return even if the copy operation is not finished.
 
     The copy operation may be overlapped with operations in other non-default
-    streams if \p stream is not the default stream and \p dst is HostMem
+    streams if \p stream is not the default stream and \p host is HostMem
     allocated with HostMem::PAGE_LOCKED option.
     */
-    void upload(CudaMat host, Stream& stream);
+    void upload(Mat host, Stream& stream = Stream::Null());
 
-    /** @brief Performs data download from CudaMat (Blocking call)
+    /** @brief Performs data download from CudaMat
+    This function copies data from device memory to host memory.
+    stream is Null, As being a blocking call, it is guaranteed
+    that the copy operation is finished when this function returns.
 
-    This function copies data from device memory to host memory. As being a
-    blocking call, it is guaranteed that the copy operation is finished when
-    this function returns.
-    */
-    void download(CudaMat device) const;
-
-    /** @brief Performs data download from CudaMat (Non-Blocking call)
-
-    This function copies data from device memory to host memory. As being a
-    non-blocking call, this function may return even if the copy operation is
-    not finished.
+    stream is not Null, As being a non-blocking call, this function
+    may return even if the copy operation is not finished.
 
     The copy operation may be overlapped with operations in other non-default
-    streams if \p stream is not the default stream and \p dst is HostMem
+    streams if \p stream is not the default stream and \p host is HostMem
     allocated with HostMem::PAGE_LOCKED option.
     */
-    void download(CudaMat device, Stream& stream) const;
+    void download(Mat host, Stream& stream = Stream::Null()) const;
 
     //! return number of columns
     int width() const;
@@ -165,7 +154,7 @@ public:
     //!  returns GPU memory info
     CUDAMemoryType memory_type() const;
 
-    /** @brief Converts an CudaMat array to another data type with optional scaling.(Blocking call)
+    /** @brief Converts an CudaMat array to another data type with optional scaling.
     The method converts source pixel values to the target data type. saturate_cast\<\> is applied at
     the end to avoid possible overflows:
     @param dst output CudaMat; if it does not have a proper size or type before the operation, it is
@@ -173,82 +162,42 @@ public:
     @param rtype desired output matrix type
     @param scale optional scale factor.
     @param shift optional delta added to the scaled values.
+    @param stream cuda stream for bound, default stream: Blocking call, not default stream: Non-Blocking call
      */
-    int convert_to(CudaMat& dst, FCVImageType rtype, double scale = 1.0, double shift = 0.0) const;
+    int convert_to(CudaMat& dst, FCVImageType rtype, double scale = 1.0, double shift = 0.0, Stream& stream = Stream::Null()) const;
 
-    /** @brief Converts an CudaMat array to another data type with optional scaling.(Non-Blocking call)
-    The method converts source pixel values to the target data type. saturate_cast\<\> is applied at
-    the end to avoid possible overflows:
-    @param dst output CudaMat; if it does not have a proper size or type before the operation, it is
-    reallocated.
-    @param rtype desired output matrix type
-    @param stream cuda stream for bound
-    @param scale optional scale factor.
-    @param shift optional delta added to the scaled values.
-     */
-    int convert_to(CudaMat& dst, FCVImageType rtype, Stream& stream, double scale = 1.0, double shift = 0.0) const;
-
-    /** @brief Copies the CudaMat to another memory. (Blocking call)
+    /** @brief Copies the CudaMat to another memory.
     @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
     reallocated.
+    @param stream cuda stream for bound, default stream: Blocking call, not default stream: Non-Blocking call
      */
-    void copy_to(CudaMat& dst) const;
-
-    /** @brief Copies the CudaMat to another memory. (Non-Blocking call)
-    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
-    reallocated.
-    @param stream cuda stream for bound
-     */
-    void copy_to(CudaMat& dst, Stream& stream) const;
+    void copy_to(CudaMat& dst, Stream& stream = Stream::Null()) const;
 
     /** @overload
     @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
     reallocated.
     @param mask Operation mask of the same size as \*this. Its non-zero elements indicate which matrix
     elements need to be copied. The mask has to be of type unsigned char and can have 1 or multiple channels.
+    @param stream cuda stream for bound, default stream: Blocking call, not default stream: Non-Blocking call
     */
-    int copy_to(CudaMat& dst, CudaMat& mask) const;
-
-    /** @overload
-    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
-    reallocated.
-    @param mask Operation mask of the same size as \*this. Its non-zero elements indicate which matrix
-    elements need to be copied. The mask has to be of type unsigned char and can have 1 or multiple channels.
-    @param stream cuda stream for bound
-    */
-    int copy_to(CudaMat& dst, CudaMat& mask, Stream& stream) const;
+    int copy_to(CudaMat& dst, CudaMat& mask, Stream& stream = Stream::Null()) const;
 
     /** @overload
       * copy src to the area oriented of dst, so the size of dst cannot samller than src's.
     @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
     return.
     @param rect dst rect Rect_(T x, T y, T width, T height).
+    @param stream cuda stream for bound, default stream: Blocking call, not default stream: Non-Blocking call
     */
-    int copy_to(CudaMat& dst, Rect& rect) const;
-
-    /** @overload
-      * copy src to the area oriented of dst, so the size of dst cannot samller than src's.
-    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
-    return.
-    @param rect dst rect Rect_(T x, T y, T width, T height).
-    @param stream cuda stream for bound
-    */
-    int copy_to(CudaMat& dst, Rect& rect, Stream& stream) const;
+    int copy_to(CudaMat& dst, Rect& rect, Stream& stream = Stream::Null()) const;
 
     /** @brief Computes a dot-product of two vectors.
     The method computes a dot-product of two matrices. The vectors must have the same size and type. If the matrices have more than one channel,
     the dot products from all the channels are summed together.
     @param m another dot-product operand.
+    @param stream cuda stream for bound, default stream: Blocking call, not default stream: Non-Blocking call
      */
-    double dot(CudaMat& m) const;
-
-    /** @brief Computes a dot-product of two vectors.
-    The method computes a dot-product of two matrices. The vectors must have the same size and type. If the matrices have more than one channel,
-    the dot products from all the channels are summed together.
-    @param m another dot-product operand.
-    @param stream cuda stream for bound
-     */
-    double dot(CudaMat& m, Stream& stream) const;
+    double dot(CudaMat& m, Stream& stream = Stream::Null()) const;
 
     /** @brief Compute the inverse of a matrix.
     The method performs a matrix inversion by means of matrix expressions. This means that a temporary
@@ -256,18 +205,9 @@ public:
     matrix expressions or can be assigned to a matrix.
     @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
     return
+    @param stream cuda stream for bound, default stream: Blocking call, not default stream: Non-Blocking call
      */
-    bool invert(CudaMat& dst) const;
-
-    /** @brief Compute the inverse of a matrix.
-    The method performs a matrix inversion by means of matrix expressions. This means that a temporary
-    matrix inversion object is returned by the method and can be used further as a part of more complex
-    matrix expressions or can be assigned to a matrix.
-    @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
-    return
-    @param stream cuda stream for bound
-     */
-    bool invert(CudaMat& dst, Stream& stream) const;
+    bool invert(CudaMat& dst, Stream& stream = Stream::Null()) const;
 
 private:
     //! the number of width and height

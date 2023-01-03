@@ -44,7 +44,7 @@ static inline double det3(T* data, D step) {
             m02 * ((double)m10 * m21 - (double)m11 * m20));
 }
 
-bool CudaMat::invert(CudaMat& dst) const {
+bool CudaMat::invert(CudaMat& dst, Stream& stream) const {
     if (_type != FCVImageType::GRAY_F64 && _type != FCVImageType::GRAY_F32) {
         LOG_ERR("The type not support yet");
         return false;
