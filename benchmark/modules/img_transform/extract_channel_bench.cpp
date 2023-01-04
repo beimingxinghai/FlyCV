@@ -23,29 +23,48 @@ public:
     void SetUp(const ::benchmark::State& state) {
         feed_num = state.range(0);
         set_thread_num(G_THREAD_NUM);
+
+        pkg_bgr_u8_720 = Mat(1280, 720, FCVImageType::PKG_BGR_U8);
+        construct_data<unsigned char>(pkg_bgr_u8_720.total_byte_size(), feed_num, pkg_bgr_u8_720.data());
+        pkg_bgra_u8_720 = Mat(1280, 720, FCVImageType::PKG_BGRA_U8);
+        construct_data<unsigned char>(pkg_bgra_u8_720.total_byte_size(), feed_num, pkg_bgra_u8_720.data());
+        gray_u8_720 = Mat(pkg_bgr_u8_720.size(), FCVImageType::GRAY_U8);
+
+        pkg_bgr_u8_1080 = Mat(1920, 1080, FCVImageType::PKG_BGR_U8);
+        construct_data<unsigned char>(pkg_bgr_u8_1080.total_byte_size(), feed_num, pkg_bgr_u8_1080.data());
+        pkg_bgra_u8_1080 = Mat(1920, 1080, FCVImageType::PKG_BGRA_U8);
+        construct_data<unsigned char>(pkg_bgra_u8_1080.total_byte_size(), feed_num, pkg_bgra_u8_1080.data());
+        gray_u8_1080 = Mat(pkg_bgr_u8_1080.size(), FCVImageType::GRAY_U8);
+
+        pkg_bgr_u8_4K = Mat(4032, 3024, FCVImageType::PKG_BGR_U8);
+        construct_data<unsigned char>(pkg_bgr_u8_4K.total_byte_size(), feed_num, pkg_bgr_u8_4K.data());
+        pkg_bgra_u8_4K = Mat(4032, 3024, FCVImageType::PKG_BGRA_U8);
+        construct_data<unsigned char>(pkg_bgra_u8_4K.total_byte_size(), feed_num, pkg_bgra_u8_4K.data());
+        gray_u8_4K = Mat(pkg_bgr_u8_4K.size(), FCVImageType::GRAY_U8);
     }
 
 public:
     int feed_num;
+    Mat pkg_bgr_u8_720;
+    Mat pkg_bgra_u8_720;
+    Mat gray_u8_720;
+    Mat pkg_bgr_u8_1080;
+    Mat pkg_bgra_u8_1080;
+    Mat gray_u8_1080;
+    Mat pkg_bgr_u8_4K;
+    Mat pkg_bgra_u8_4K;
+    Mat gray_u8_4K;
 };
 
 BENCHMARK_DEFINE_F(ExtractChannelBench, RGBU8_720P)(benchmark::State& state) {
-    Mat src = Mat(1280, 720, FCVImageType::PKG_BGR_U8);
-    construct_data<unsigned char>(src.total_byte_size(), feed_num, src.data());
-    
-    Mat dst;
     for (auto _state : state) {
-        extract_channel(src, dst, 0);
+        extract_channel(pkg_bgr_u8_720, gray_u8_720, 0);
     }
 }
 
 BENCHMARK_DEFINE_F(ExtractChannelBench, RGBAU8_720P)(benchmark::State& state) {
-    Mat src = Mat(1280, 720, FCVImageType::PKG_BGRA_U8);
-    construct_data<unsigned char>(src.total_byte_size(), feed_num, src.data());
-    
-    Mat dst;
     for (auto _state : state) {
-        extract_channel(src, dst, 0);
+        extract_channel(pkg_bgra_u8_720, gray_u8_720, 0);
     }
 }
 
@@ -54,30 +73,21 @@ BENCHMARK_REGISTER_F(ExtractChannelBench, RGBU8_720P)
         ->Iterations(100)
         ->DenseRange(55, 255, 200);
 
-
 BENCHMARK_REGISTER_F(ExtractChannelBench, RGBAU8_720P)
         ->Unit(benchmark::kMicrosecond)
         ->Iterations(100)
         ->DenseRange(55, 255, 200);
 
-//1080
+// 1080
 BENCHMARK_DEFINE_F(ExtractChannelBench, RGBU8_1080P)(benchmark::State& state) {
-    Mat src = Mat(1920, 1080, FCVImageType::PKG_BGR_U8);
-    construct_data<unsigned char>(src.total_byte_size(), feed_num, src.data());
-    
-    Mat dst;
     for (auto _state : state) {
-        extract_channel(src, dst, 0);
+        extract_channel(pkg_bgr_u8_1080, gray_u8_1080, 0);
     }
 }
 
 BENCHMARK_DEFINE_F(ExtractChannelBench, RGBAU8_1080P)(benchmark::State& state) {
-    Mat src = Mat(1920, 1080, FCVImageType::PKG_BGRA_U8);
-    construct_data<unsigned char>(src.total_byte_size(), feed_num, src.data());
-    
-    Mat dst;
     for (auto _state : state) {
-        extract_channel(src, dst, 0);
+        extract_channel(pkg_bgra_u8_1080, gray_u8_1080, 0);
     }
 }
 
@@ -91,24 +101,16 @@ BENCHMARK_REGISTER_F(ExtractChannelBench, RGBAU8_1080P)
         ->Iterations(100)
         ->DenseRange(55, 255, 200);
 
-//4K
+// 4K
 BENCHMARK_DEFINE_F(ExtractChannelBench, RGBU8_4K)(benchmark::State& state) {
-    Mat src = Mat(4032, 3024, FCVImageType::PKG_BGR_U8);
-    construct_data<unsigned char>(src.total_byte_size(), feed_num, src.data());
-    
-    Mat dst;
     for (auto _state : state) {
-        extract_channel(src, dst, 0);
+        extract_channel(pkg_bgr_u8_4K, gray_u8_4K, 0);
     }
 }
 
 BENCHMARK_DEFINE_F(ExtractChannelBench, RGBAU8_4K)(benchmark::State& state) {
-    Mat src = Mat(4032, 3024, FCVImageType::PKG_BGRA_U8);
-    construct_data<unsigned char>(src.total_byte_size(), feed_num, src.data());
-    
-    Mat dst;
     for (auto _state : state) {
-        extract_channel(src, dst, 0);
+        extract_channel(pkg_bgra_u8_4K, gray_u8_4K, 0);
     }
 }
 
@@ -116,7 +118,6 @@ BENCHMARK_REGISTER_F(ExtractChannelBench, RGBU8_4K)
         ->Unit(benchmark::kMicrosecond)
         ->Iterations(100)
         ->DenseRange(55, 255, 200);
-
 
 BENCHMARK_REGISTER_F(ExtractChannelBench, RGBAU8_4K)
         ->Unit(benchmark::kMicrosecond)

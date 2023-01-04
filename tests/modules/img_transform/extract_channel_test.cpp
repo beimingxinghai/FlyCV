@@ -26,16 +26,19 @@ class ExtractChannelTest : public ::testing::Test {
         status = read_binary_file(BGR_1280X720_U8_BIN, pkg_bgr_u8_src.data(),
                     pkg_bgr_u8_src.total_byte_size());
         EXPECT_EQ(status, 0);
+
+        Mat temp(pkg_bgr_u8_src.size(), FCVImageType::GRAY_U8);
+        pkg_bgr_u8_dst = {temp, temp, temp};
     }
 
     Mat pkg_bgr_u8_src;
+    std::vector<Mat> pkg_bgr_u8_dst;
 };
 
 TEST_F(ExtractChannelTest, PkgBGRU8PositiveInput) {
-    Mat dst[3];
-    extract_channel(pkg_bgr_u8_src, dst[0], 0);
-    extract_channel(pkg_bgr_u8_src, dst[1], 1);
-    extract_channel(pkg_bgr_u8_src, dst[2], 2);
+    extract_channel(pkg_bgr_u8_src, pkg_bgr_u8_dst[0], 0);
+    extract_channel(pkg_bgr_u8_src, pkg_bgr_u8_dst[1], 1);
+    extract_channel(pkg_bgr_u8_src, pkg_bgr_u8_dst[2], 2);
 
     std::vector<int> index = {0, 1, 2, 921597, 921598, 921599};
     std::vector<std::vector<unsigned char>> groundtruth = {
@@ -44,7 +47,7 @@ TEST_F(ExtractChannelTest, PkgBGRU8PositiveInput) {
         {47, 49, 50, 255, 255, 255}};
 
     for (int n = 0; n < pkg_bgr_u8_src.channels(); n++) {
-        unsigned char* dst_data = reinterpret_cast<unsigned char*>(dst[n].data());
+        unsigned char* dst_data = reinterpret_cast<unsigned char*>(pkg_bgr_u8_dst[n].data());
 
         for (size_t i = 0; i < index.size(); ++i) {
             // std::cout << i << ": " << dst_data[index[i]] << std::endl;

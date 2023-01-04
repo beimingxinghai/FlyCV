@@ -27,7 +27,7 @@ __global__ void extract_with_kernel(const T* src, int width, int height, int cha
     const int nx = blockIdx.x * TILE_DIM + threadIdx.x;
     const int ny = blockIdx.y * TILE_DIM + threadIdx.y;
     const int nn = ny * width + nx;
-    if (nx < width  && ny < height) {
+    if (nx < width && ny < height) {
         dst[nn] = src[nn * channel + index];
     }
 }
@@ -36,6 +36,11 @@ int extract_channel(CudaMat& _src, CudaMat& _dst, int _index, Stream& stream) {
     if (_src.type() != FCVImageType::PKG_BGR_U8) {
         LOG_ERR("src type is not support");
         return -1;
+    }
+
+    if (_dst.size().width() != _src.size().width() || _dst.size().height() != _src.size().height() ||
+        _dst.type() != FCVImageType::GRAY_U8) {
+        _dst = CudaMat(_src.size(), FCVImageType::GRAY_U8);
     }
 
     if (_index >= _src.channels()) {
@@ -62,8 +67,6 @@ int extract_channel(CudaMat& _src, CudaMat& _dst, int _index, Stream& stream) {
                 _src.channels());
         return -1;
     }
-
-    _dst = CudaMat(_src.size(), FCVImageType::GRAY_U8);
 
     const size_t src_size = _src.total_byte_size();
     const size_t dst_size = _dst.total_byte_size();

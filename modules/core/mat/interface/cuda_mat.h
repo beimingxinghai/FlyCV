@@ -96,7 +96,7 @@ public:
 
     //! returns CudaMat size : width == number of columns, height == number of
     //! rows
-    Size2i size() const;
+    Size size() const;
 
     //! returns number of channels
     int channels() const;
