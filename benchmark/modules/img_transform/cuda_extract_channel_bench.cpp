@@ -44,6 +44,7 @@ public:
     }
 
     void TearDown(const ::benchmark::State& state) {
+        feed_num = state.range(0);
         gray_u8_4K.~CudaMat();
         pkg_bgra_u8_4K.~CudaMat();
         pkg_bgr_u8_4K.~CudaMat();
@@ -70,70 +71,70 @@ public:
     CudaMat gray_u8_4K;
 };
 
-BENCHMARK_DEFINE_F(CudaExtractChannelBench, RGBU8_720P)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(CudaExtractChannelBench, BGRU8_720P)(benchmark::State& state) {
     for (auto _state : state) {
-        extract_channel(pkg_bgr_u8_720, gray_u8_720, 0);
+        extract_channel(pkg_bgr_u8_720, gray_u8_720, state.range(1));
     }
 }
 
-BENCHMARK_DEFINE_F(CudaExtractChannelBench, RGBAU8_720P)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(CudaExtractChannelBench, BGRAU8_720P)(benchmark::State& state) {
     for (auto _state : state) {
-        extract_channel(pkg_bgra_u8_720, gray_u8_720, 0);
+        extract_channel(pkg_bgra_u8_720, gray_u8_720, state.range(1));
     }
 }
 
-BENCHMARK_REGISTER_F(CudaExtractChannelBench, RGBU8_720P)
+BENCHMARK_REGISTER_F(CudaExtractChannelBench, BGRU8_720P)
         ->Unit(benchmark::kMicrosecond)
         ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+        ->ArgsProduct({benchmark::CreateDenseRange(55, 255, 200), benchmark::CreateDenseRange(0, 2, 1)});
 
-BENCHMARK_REGISTER_F(CudaExtractChannelBench, RGBAU8_720P)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+// BENCHMARK_REGISTER_F(CudaExtractChannelBench, BGRAU8_720P)
+//         ->Unit(benchmark::kMicrosecond)
+//         ->Iterations(100)
+//         ->ArgsProduct({benchmark::CreateDenseRange(55, 255, 200), benchmark::CreateDenseRange(0, 3, 1)});
 
 // 1080
-BENCHMARK_DEFINE_F(CudaExtractChannelBench, RGBU8_1080P)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(CudaExtractChannelBench, BGRU8_1080P)(benchmark::State& state) {
     for (auto _state : state) {
-        extract_channel(pkg_bgr_u8_1080, gray_u8_1080, 0);
+        extract_channel(pkg_bgr_u8_1080, gray_u8_1080, state.range(1));
     }
 }
 
-BENCHMARK_DEFINE_F(CudaExtractChannelBench, RGBAU8_1080P)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(CudaExtractChannelBench, BGRAU8_1080P)(benchmark::State& state) {
     for (auto _state : state) {
-        extract_channel(pkg_bgra_u8_1080, gray_u8_1080, 0);
+        extract_channel(pkg_bgra_u8_1080, gray_u8_1080, state.range(1));
     }
 }
 
-BENCHMARK_REGISTER_F(CudaExtractChannelBench, RGBU8_1080P)
+BENCHMARK_REGISTER_F(CudaExtractChannelBench, BGRU8_1080P)
         ->Unit(benchmark::kMicrosecond)
         ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+        ->ArgsProduct({benchmark::CreateDenseRange(55, 255, 200), benchmark::CreateDenseRange(0, 2, 1)});
 
-BENCHMARK_REGISTER_F(CudaExtractChannelBench, RGBAU8_1080P)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+// BENCHMARK_REGISTER_F(CudaExtractChannelBench, BGRAU8_1080P)
+//         ->Unit(benchmark::kMicrosecond)
+//         ->Iterations(100)
+//         ->ArgsProduct({benchmark::CreateDenseRange(55, 255, 200), benchmark::CreateDenseRange(0, 3, 1)});
 
 // 4K
-BENCHMARK_DEFINE_F(CudaExtractChannelBench, RGBU8_4K)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(CudaExtractChannelBench, BGRU8_4K)(benchmark::State& state) {
     for (auto _state : state) {
-        extract_channel(pkg_bgr_u8_4K, gray_u8_4K, 0);
+        extract_channel(pkg_bgr_u8_4K, gray_u8_4K, state.range(1));
     }
 }
 
-BENCHMARK_DEFINE_F(CudaExtractChannelBench, RGBAU8_4K)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(CudaExtractChannelBench, BGRAU8_4K)(benchmark::State& state) {
     for (auto _state : state) {
-        extract_channel(pkg_bgra_u8_4K, gray_u8_4K, 0);
+        extract_channel(pkg_bgra_u8_4K, gray_u8_4K, state.range(1));
     }
 }
 
-BENCHMARK_REGISTER_F(CudaExtractChannelBench, RGBU8_4K)
+BENCHMARK_REGISTER_F(CudaExtractChannelBench, BGRU8_4K)
         ->Unit(benchmark::kMicrosecond)
         ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+        ->ArgsProduct({benchmark::CreateDenseRange(55, 255, 200), benchmark::CreateDenseRange(0, 2, 1)});
 
-BENCHMARK_REGISTER_F(CudaExtractChannelBench, RGBAU8_4K)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+// BENCHMARK_REGISTER_F(CudaExtractChannelBench, BGRAU8_4K)
+//         ->Unit(benchmark::kMicrosecond)
+//         ->Iterations(100)
+//         ->ArgsProduct({benchmark::CreateDenseRange(55, 255, 200), benchmark::CreateDenseRange(0, 3, 1)});
