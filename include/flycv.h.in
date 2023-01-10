@@ -156,7 +156,7 @@
 #ifdef WITH_FCV_MATRIX_MUL
 #include "modules/img_calculation/matrix_mul/interface/matrix_mul.h"
 #ifdef WITH_CUDA_SUPPORT
-#include "modules/img_calculation/matrix_mul/include/cuda_matrix_mul.h"
+#include "modules/img_calculation/matrix_mul/interface/cuda_matrix_mul.h"
 #endif
 #endif
 #ifdef WITH_FCV_NORM

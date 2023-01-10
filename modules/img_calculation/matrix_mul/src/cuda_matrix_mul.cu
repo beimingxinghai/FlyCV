@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "modules/core/base/include/type_info.h"
-#include "modules/img_calculation/matrix_mul/include/cuda_matrix_mul.h"
+#include "modules/img_calculation/matrix_mul/interface/cuda_matrix_mul.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
