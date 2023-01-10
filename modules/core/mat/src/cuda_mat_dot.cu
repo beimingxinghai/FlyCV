@@ -16,7 +16,6 @@
 
 #include "modules/core/base/include/type_info.h"
 #include "modules/core/base/include/utils.h"
-#include "modules/core/mat/include/mat_dot_common.h"
 #include "modules/core/mat/interface/cuda_mat.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
@@ -49,7 +48,7 @@ __global__ void reduce_shared(double* d_x, double* d_y, int N) {
     }
 }
 
-double CudaMat::dot(CudaMat& m) const {
+double CudaMat::dot(CudaMat& m, Stream& stream) const {
     if (m.empty()) {
         m = CudaMat(_width, _height, _type);
     }

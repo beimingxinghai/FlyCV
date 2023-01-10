@@ -46,6 +46,7 @@ endif()
 option(WITH_CUDA_SUPPORT "Turn ON CUDA support" OFF)
 option(WITH_CUDA_SCP "Turn ON CUDA Separate Compilation" ON)
 if(WITH_CUDA_SUPPORT)
+    enable_language(CUDA)
     find_package(CUDA REQUIRED)
 
     include_directories(${CUDA_INCLUDE_DIRS})
@@ -96,13 +97,16 @@ else()
 endif()
 endif()
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${ARCH_FLAGS}")
+
+if(CUDA_VERSION_MAJOR VERSION_GREATER_EQUAL "7")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --default-stream per-thread")
+endif()
 # --------------------------------------------------------------------------- #
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc)
+# set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc)
 # Explicitly set the cuda host compiler.
 # Because the default host compiler selected by cmake maybe wrong.
 set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-enable_language(CUDA)
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-fPIC,-Wall,-fvisibility=hidden")
 set(CUDA_NVCC_FLAGS_DEBUG "-g")
 set(CUDA_NVCC_FLAGS_RELEASE "-O3")
@@ -110,5 +114,6 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${CUDA_NVCC_FLAGS}")
 set(CMAKE_CUDA_STANDARD 11)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
+message("CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}")
 endif()
 # =============================================

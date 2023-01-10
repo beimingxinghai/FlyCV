@@ -18,24 +18,24 @@
 
 using namespace g_fcv_ns;
 
-class ExtractChannelTest : public ::testing::Test {
+class CudaExtractChannelTest : public ::testing::Test {
    protected:
     void SetUp() override {
         int status = 0;
-        pkg_bgr_u8_src = Mat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_U8);
+        pkg_bgr_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_U8);
         status = read_binary_file(BGR_1280X720_U8_BIN, pkg_bgr_u8_src.data(),
                     pkg_bgr_u8_src.total_byte_size());
         EXPECT_EQ(status, 0);
 
-        Mat temp(pkg_bgr_u8_src.size(), FCVImageType::GRAY_U8);
+        CudaMat temp(pkg_bgr_u8_src.size(), FCVImageType::GRAY_U8);
         pkg_bgr_u8_dst = {temp, temp, temp};
     }
 
-    Mat pkg_bgr_u8_src;
-    std::vector<Mat> pkg_bgr_u8_dst;
+    CudaMat pkg_bgr_u8_src;
+    std::vector<CudaMat> pkg_bgr_u8_dst;
 };
 
-TEST_F(ExtractChannelTest, PkgBGRU8PositiveInput) {
+TEST_F(CudaExtractChannelTest, PkgBGRU8PositiveInput) {
     extract_channel(pkg_bgr_u8_src, pkg_bgr_u8_dst[0], 0);
     extract_channel(pkg_bgr_u8_src, pkg_bgr_u8_dst[1], 1);
     extract_channel(pkg_bgr_u8_src, pkg_bgr_u8_dst[2], 2);

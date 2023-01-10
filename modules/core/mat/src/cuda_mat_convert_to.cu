@@ -27,7 +27,7 @@ __global__ void convert_type(ST* src, DT* dst, int count, double scale, double s
     }
 }
 
-int CudaMat::convert_to(CudaMat& dst, FCVImageType dst_type, double scale, double shift) const {
+int CudaMat::convert_to(CudaMat& dst, FCVImageType dst_type, double scale, double shift, Stream& stream) const {
     if (dst.empty()) {
         dst = CudaMat(_width, _height, dst_type);
     }

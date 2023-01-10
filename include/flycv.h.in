@@ -145,6 +145,9 @@
 #endif
 #ifdef WITH_FCV_EXTRACT_CHANNEL
 #include "modules/img_transform/extract_channel/interface/extract_channel.h"
+#ifdef WITH_CUDA_SUPPORT
+#include "modules/img_transform/extract_channel/interface/cuda_extract_channel.h"
+#endif
 #endif
 #endif
 
