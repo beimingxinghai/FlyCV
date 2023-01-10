@@ -42,6 +42,7 @@ __global__ void matrix_mul_c1(T* dst, T* src0, T* src1, int w, int h, int k) {
             for (int j = 0; j < BLOCK_SIZE; j++) {
                 data += tile_0[threadIdx.y][j] * tile_1[j][threadIdx.x];
             }
+            __syncthreads();
         }
     }
     if (tx < w && ty < h) {
