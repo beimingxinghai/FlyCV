@@ -27,6 +27,6 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
  * @param[in] stream cuda stream for bound,
  * default stream: Blocking call, not default stream: Non-Blocking call
 */
-EXTERN_C FCV_API int split_to_memcpy(const CudaMat& src, CudaMat* dst, Stream& stream = Stream::Null());
+FCV_API int split_to_memcpy(const CudaMat& src, CudaMat* dst, Stream& stream = Stream::Null());
 
 G_FCV_NAMESPACE1_END()
