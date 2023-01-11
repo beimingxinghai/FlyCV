@@ -14,7 +14,10 @@
 
 #include "modules/core/allocator/interface/base_allocator.h"
 #include "modules/core/allocator/include/cpu_allocator.h"
+
+#ifdef WITH_CUDA_SUPPORT
 #include "modules/core/allocator/include/cuda_allocator.h"
+#endif
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
@@ -28,6 +31,7 @@ std::shared_ptr<BaseAllocator> get_allocator_from_platform(
     case PlatformType::CPU:
         result = std::make_shared<cpu_allocator>(size);
         break;
+#ifdef WITH_CUDA_SUPPORT
     case PlatformType::CUDA:
         switch (flag & 0x3)
         {
@@ -41,6 +45,7 @@ std::shared_ptr<BaseAllocator> get_allocator_from_platform(
             break;
         }
         break;
+#endif
     default:
         break;
     };

@@ -104,9 +104,16 @@ endif()
 # --------------------------------------------------------------------------- #
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 # set(CMAKE_CUDA_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc)
-# Explicitly set the cuda host compiler.
-# Because the default host compiler selected by cmake maybe wrong.
+
+# We need to check this variable before starting a CUDA project - otherwise it will appear
+# as set, with the default value pointing to the oldest supported architecture (52 as of CUDA 11.8)
+set(USE_CMAKE_CUDA_ARCHITECTURES TRUE)
+# Make sure the cuda host compiler agrees with what we're using,
+# unless user overwrites it (at their own risk).
+if(NOT CMAKE_CUDA_HOST_COMPILER)
 set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+endif()
+
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-fPIC,-Wall,-fvisibility=hidden")
 set(CUDA_NVCC_FLAGS_DEBUG "-g")
 set(CUDA_NVCC_FLAGS_RELEASE "-O3")

@@ -47,7 +47,8 @@ cmake \
     -DBUILD_FCV_MEDIA_IO=ON \
     -DWITH_LIB_PNG=ON \
     -DWITH_LIB_JPEG_TURBO=ON \
-    -DBUILD_SHARED_LIBS=OFF \
+    -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_VERBOSE_MAKEFILE=OFF \
     ..
 
 make -j"${core_num}"
