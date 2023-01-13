@@ -80,7 +80,7 @@ CudaMat::CudaMat(
     parse_type_info();
     _allocator = get_allocator_from_platform(_total_byte_size, _platform, _flag);
     if (!_allocator) {
-        LOG_ERR("Failed to init CudaMat!");
+        LOG_ERR("Failed to init CudaMat! size: %d \n", _total_byte_size);
         return;
     }
 

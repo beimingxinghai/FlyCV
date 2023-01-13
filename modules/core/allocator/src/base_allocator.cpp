@@ -15,7 +15,7 @@
 #include "modules/core/allocator/interface/base_allocator.h"
 #include "modules/core/allocator/include/cpu_allocator.h"
 
-#ifdef WITH_CUDA_SUPPORT
+#ifdef USE_CUDA
 #include "modules/core/allocator/include/cuda_allocator.h"
 #endif
 
@@ -31,7 +31,7 @@ std::shared_ptr<BaseAllocator> get_allocator_from_platform(
     case PlatformType::CPU:
         result = std::make_shared<cpu_allocator>(size);
         break;
-#ifdef WITH_CUDA_SUPPORT
+#ifdef USE_CUDA
     case PlatformType::CUDA:
         switch (flag & 0x3)
         {

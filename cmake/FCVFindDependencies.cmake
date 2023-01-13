@@ -46,9 +46,9 @@ endif()
 option(WITH_CUDA_SUPPORT "Turn ON CUDA support" OFF)
 option(WITH_CUDA_SCP "Turn ON CUDA Separate Compilation" ON)
 if(WITH_CUDA_SUPPORT)
+    add_definitions(-DUSE_CUDA)
     enable_language(CUDA)
     find_package(CUDA REQUIRED)
-
     include_directories(${CUDA_INCLUDE_DIRS})
     list(APPEND FCV_LINK_DEPS ${CUDA_LIBRARIES})
 
