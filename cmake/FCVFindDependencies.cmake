@@ -80,6 +80,7 @@ if(CUDA_MULTI_ARCH)
             set(ARCH_FLAGS "${ARCH_FLAGS} -gencode arch=compute_86,code=sm_86")
         endif ()
     endif ()
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${ARCH_FLAGS}")
 else()
 if(${CMAKE_VERSION} VERSION_LESS_EQUAL "3.13.4")
     cuda_select_nvcc_arch_flags(ARCH_FLAGS "Auto") # optional argument for arch to add
@@ -96,7 +97,6 @@ else()
     set_property(GLOBAL PROPERTY CUDA_ARCHITECTURES "${CUDA_ARCH_LIST}")
 endif()
 endif()
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${ARCH_FLAGS}")
 
 if(CUDA_VERSION_MAJOR VERSION_GREATER_EQUAL "7")
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --default-stream per-thread")
@@ -108,19 +108,20 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 # We need to check this variable before starting a CUDA project - otherwise it will appear
 # as set, with the default value pointing to the oldest supported architecture (52 as of CUDA 11.8)
 set(USE_CMAKE_CUDA_ARCHITECTURES TRUE)
+
 # Make sure the cuda host compiler agrees with what we're using,
 # unless user overwrites it (at their own risk).
 if(NOT CMAKE_CUDA_HOST_COMPILER)
 set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
 endif()
 
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-fPIC,-Wall,-fvisibility=hidden")
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler=-fPIC,-Wall")
 set(CUDA_NVCC_FLAGS_DEBUG "-g")
 set(CUDA_NVCC_FLAGS_RELEASE "-O3")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${CUDA_NVCC_FLAGS}")
 set(CMAKE_CUDA_STANDARD 11)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-message("CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}")
+message("CMAKE_CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES} CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}")
 endif()
 # =============================================
