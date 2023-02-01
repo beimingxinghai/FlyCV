@@ -136,6 +136,9 @@
 #endif
 #ifdef WITH_FCV_CROP
 #include "modules/img_transform/crop/interface/crop.h"
+#ifdef WITH_CUDA_SUPPORT
+#include "modules/img_transform/crop/interface/cuda_crop.h"
+#endif
 #endif
 #ifdef WITH_FCV_REMAP
 #include "modules/img_transform/remap/interface/remap.h"
