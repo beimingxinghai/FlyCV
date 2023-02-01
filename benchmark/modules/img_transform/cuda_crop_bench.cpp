@@ -24,26 +24,40 @@ public:
         feed_num = state.range(0);
         set_thread_num(G_THREAD_NUM);
 
+        rect = Rect(10, 20, 100, 200);
+        pkg_bgr_dst = CudaMat(rect.width(), rect.height(), FCVImageType::PKG_BGR_U8);
+        pkg_bgra_dst = CudaMat(rect.width(), rect.height(), FCVImageType::PKG_BGRA_U8);
+        gray_u8_dst = CudaMat(rect.width(), rect.height(), FCVImageType::GRAY_U8);
+
         pkg_bgr_u8_720 = CudaMat(1280, 720, FCVImageType::PKG_BGR_U8);
-        construct_data<unsigned char>(pkg_bgr_u8_720.total_byte_size(), feed_num, pkg_bgr_u8_720.data());
+        construct_data<unsigned char>(pkg_bgr_u8_720.total_byte_size(),
+                                      feed_num, pkg_bgr_u8_720.data());
         pkg_bgra_u8_720 = CudaMat(1280, 720, FCVImageType::PKG_BGRA_U8);
-        construct_data<unsigned char>(pkg_bgra_u8_720.total_byte_size(), feed_num, pkg_bgra_u8_720.data());
+        construct_data<unsigned char>(pkg_bgra_u8_720.total_byte_size(),
+                                      feed_num, pkg_bgra_u8_720.data());
         gray_u8_720 = CudaMat(1280, 720, FCVImageType::GRAY_U8);
-        construct_data<unsigned char>(gray_u8_720.total_byte_size(), feed_num, gray_u8_720.data());
+        construct_data<unsigned char>(gray_u8_720.total_byte_size(), feed_num,
+                                      gray_u8_720.data());
 
         pkg_bgr_u8_1080 = CudaMat(1920, 1080, FCVImageType::PKG_BGR_U8);
-        construct_data<unsigned char>(pkg_bgr_u8_1080.total_byte_size(), feed_num, pkg_bgr_u8_1080.data());
+        construct_data<unsigned char>(pkg_bgr_u8_1080.total_byte_size(),
+                                      feed_num, pkg_bgr_u8_1080.data());
         pkg_bgra_u8_1080 = CudaMat(1920, 1080, FCVImageType::PKG_BGRA_U8);
-        construct_data<unsigned char>(pkg_bgra_u8_1080.total_byte_size(), feed_num, pkg_bgra_u8_1080.data());
+        construct_data<unsigned char>(pkg_bgra_u8_1080.total_byte_size(),
+                                      feed_num, pkg_bgra_u8_1080.data());
         gray_u8_1080 = CudaMat(1920, 1080, FCVImageType::GRAY_U8);
-        construct_data<unsigned char>(gray_u8_1080.total_byte_size(), feed_num, gray_u8_1080.data());
+        construct_data<unsigned char>(gray_u8_1080.total_byte_size(), feed_num,
+                                      gray_u8_1080.data());
 
         pkg_bgr_u8_4K = CudaMat(4032, 3024, FCVImageType::PKG_BGR_U8);
-        construct_data<unsigned char>(pkg_bgr_u8_4K.total_byte_size(), feed_num, pkg_bgr_u8_4K.data());
+        construct_data<unsigned char>(pkg_bgr_u8_4K.total_byte_size(), feed_num,
+                                      pkg_bgr_u8_4K.data());
         pkg_bgra_u8_4K = CudaMat(4032, 3024, FCVImageType::PKG_BGRA_U8);
-        construct_data<unsigned char>(pkg_bgra_u8_4K.total_byte_size(), feed_num, pkg_bgra_u8_4K.data());
+        construct_data<unsigned char>(pkg_bgra_u8_4K.total_byte_size(),
+                                      feed_num, pkg_bgra_u8_4K.data());
         gray_u8_4K = CudaMat(4032, 3024, FCVImageType::GRAY_U8);
-        construct_data<unsigned char>(gray_u8_4K.total_byte_size(), feed_num, gray_u8_4K.data());
+        construct_data<unsigned char>(gray_u8_4K.total_byte_size(), feed_num,
+                                      gray_u8_4K.data());
     }
 
     void TearDown(const ::benchmark::State& state) {
@@ -59,10 +73,18 @@ public:
         gray_u8_720.~CudaMat();
         pkg_bgra_u8_720.~CudaMat();
         pkg_bgr_u8_720.~CudaMat();
+
+        gray_u8_dst.~CudaMat();
+        pkg_bgra_dst.~CudaMat();
+        pkg_bgr_dst.~CudaMat();
     }
 
 public:
     int feed_num;
+    Rect rect;
+    CudaMat pkg_bgr_dst;
+    CudaMat pkg_bgra_dst;
+    CudaMat gray_u8_dst;
     CudaMat pkg_bgr_u8_720;
     CudaMat pkg_bgra_u8_720;
     CudaMat gray_u8_720;
@@ -75,122 +97,103 @@ public:
 };
 
 BENCHMARK_DEFINE_F(CudaCropBench, GRAYU8_720P)(benchmark::State& state) {
-    CudaMat dst;
     for (auto _state : state) {
-        Rect rect = Rect(10, 20, 100, 200);
-        crop(gray_u8_720, dst, rect);
+        crop(gray_u8_720, gray_u8_dst, rect);
     }
 }
 
 BENCHMARK_DEFINE_F(CudaCropBench, RGBU8_720P)(benchmark::State& state) {
-    CudaMat dst;
     for (auto _state : state) {
-        Rect rect = Rect(10, 20, 100, 200);
-        crop(pkg_bgr_u8_720, dst, rect);
+        crop(pkg_bgr_u8_720, pkg_bgr_dst, rect);
     }
 }
 
-
 BENCHMARK_DEFINE_F(CudaCropBench, RGBAU8_720P)(benchmark::State& state) {
-    CudaMat dst;
     for (auto _state : state) {
-        Rect rect = Rect(10, 20, 100, 200);
-        crop(pkg_bgra_u8_720, dst, rect);
+        crop(pkg_bgra_u8_720, pkg_bgra_dst, rect);
     }
 }
 
 BENCHMARK_REGISTER_F(CudaCropBench, GRAYU8_720P)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+    ->Unit(benchmark::kMicrosecond)
+    ->Iterations(100)
+    ->DenseRange(55, 255, 200);
 
 BENCHMARK_REGISTER_F(CudaCropBench, RGBU8_720P)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+    ->Unit(benchmark::kMicrosecond)
+    ->Iterations(100)
+    ->DenseRange(55, 255, 200);
 
 BENCHMARK_REGISTER_F(CudaCropBench, RGBAU8_720P)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+    ->Unit(benchmark::kMicrosecond)
+    ->Iterations(100)
+    ->DenseRange(55, 255, 200);
 
-//1080
+// 1080
 
 BENCHMARK_DEFINE_F(CudaCropBench, GRAYU8_1080P)(benchmark::State& state) {
-    CudaMat dst;
     for (auto _state : state) {
-        Rect rect = Rect(10, 20, 100, 200);
-        crop(gray_u8_1080, dst, rect);
+        crop(gray_u8_1080, gray_u8_dst, rect);
     }
 }
 
 BENCHMARK_DEFINE_F(CudaCropBench, RGBU8_1080P)(benchmark::State& state) {
-    CudaMat dst;
     for (auto _state : state) {
-        Rect rect = Rect(10, 20, 100, 200);
-        crop(pkg_bgr_u8_1080, dst, rect);
+        crop(pkg_bgr_u8_1080, pkg_bgr_dst, rect);
     }
 }
 
 BENCHMARK_DEFINE_F(CudaCropBench, RGBAU8_1080P)(benchmark::State& state) {
-    CudaMat dst;
     for (auto _state : state) {
-        Rect rect = Rect(10, 20, 100, 200);
-        crop(pkg_bgra_u8_1080, dst, rect);
+        crop(pkg_bgra_u8_1080, pkg_bgra_dst, rect);
     }
 }
 
 BENCHMARK_REGISTER_F(CudaCropBench, GRAYU8_1080P)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+    ->Unit(benchmark::kMicrosecond)
+    ->Iterations(100)
+    ->DenseRange(55, 255, 200);
 
 BENCHMARK_REGISTER_F(CudaCropBench, RGBU8_1080P)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+    ->Unit(benchmark::kMicrosecond)
+    ->Iterations(100)
+    ->DenseRange(55, 255, 200);
 
 BENCHMARK_REGISTER_F(CudaCropBench, RGBAU8_1080P)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+    ->Unit(benchmark::kMicrosecond)
+    ->Iterations(100)
+    ->DenseRange(55, 255, 200);
 
-//4K
+// 4K
 BENCHMARK_DEFINE_F(CudaCropBench, GRAYU8_4K)(benchmark::State& state) {
-    CudaMat dst;
     for (auto _state : state) {
-        Rect rect = Rect(10, 20, 100, 200);
-        crop(gray_u8_4K, dst, rect);
+        crop(gray_u8_4K, gray_u8_dst, rect);
     }
 }
 
 BENCHMARK_DEFINE_F(CudaCropBench, RGBU8_4K)(benchmark::State& state) {
-    CudaMat dst;
     for (auto _state : state) {
-        Rect rect = Rect(10, 20, 100, 200);
-        crop(pkg_bgr_u8_4K, dst, rect);
+        crop(pkg_bgr_u8_4K, pkg_bgr_dst, rect);
     }
 }
 
 BENCHMARK_DEFINE_F(CudaCropBench, RGBAU8_4K)(benchmark::State& state) {
-    CudaMat dst;
     for (auto _state : state) {
-        Rect rect = Rect(10, 20, 100, 200);
-        crop(pkg_bgra_u8_4K, dst, rect);
+        crop(pkg_bgra_u8_4K, pkg_bgra_dst, rect);
     }
 }
 
 BENCHMARK_REGISTER_F(CudaCropBench, GRAYU8_4K)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+    ->Unit(benchmark::kMicrosecond)
+    ->Iterations(100)
+    ->DenseRange(55, 255, 200);
 
 BENCHMARK_REGISTER_F(CudaCropBench, RGBU8_4K)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+    ->Unit(benchmark::kMicrosecond)
+    ->Iterations(100)
+    ->DenseRange(55, 255, 200);
 
 BENCHMARK_REGISTER_F(CudaCropBench, RGBAU8_4K)
-        ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
-        ->DenseRange(55, 255, 200);
+    ->Unit(benchmark::kMicrosecond)
+    ->Iterations(100)
+    ->DenseRange(55, 255, 200);

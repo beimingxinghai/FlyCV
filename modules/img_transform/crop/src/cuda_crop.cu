@@ -64,10 +64,10 @@ int crop(const CudaMat& src, CudaMat& dst, Rect& drect, Stream& stream) {
             return -1;
     }
 
-    Size dst_size(drect.width(), drect.height());
     if (dst.empty() || dst.type() != src.type() ||
-        dst.width() != dst_size.width() || dst.height() != dst_size.height()) {
-        dst = CudaMat(dst_size.width(), dst_size.height(), src.type());
+        dst.width() != drect.width() || dst.height() != drect.height()) {
+        LOG_ERR("create new CudaMat!");
+        dst = CudaMat(drect.width(), drect.height(), src.type());
     }
 
     uint8_t* dst_addr = reinterpret_cast<uint8_t*>(dst.data());
@@ -78,7 +78,7 @@ int crop(const CudaMat& src, CudaMat& dst, Rect& drect, Stream& stream) {
     dim3 blocks(32, 32);
 
     int grid_x = fcv_ceil((dst_step + blocks.x - 1) / (float)blocks.x);
-    int grid_y = fcv_ceil((dst_size.height() + blocks.y - 1) / (float)blocks.y);
+    int grid_y = fcv_ceil((drect.height() + blocks.y - 1) / (float)blocks.y);
     dim3 grids(grid_x, grid_y);
 
     int device_id = 0;
