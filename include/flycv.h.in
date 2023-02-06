@@ -127,6 +127,9 @@
 #endif
 #ifdef WITH_FCV_FLIP
 #include "modules/img_transform/flip/interface/flip.h"
+#ifdef WITH_CUDA_SUPPORT
+#include "modules/img_transform/flip/interface/cuda_flip.h"
+#endif
 #endif
 #ifdef WITH_FCV_SUBTRACT
 #include "modules/img_transform/subtract/interface/subtract.h"

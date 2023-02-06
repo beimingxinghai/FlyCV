@@ -246,7 +246,7 @@ int flip_common(const Mat& src, Mat& dst, FlipType type) {
     case FCVImageType::PKG_BGR_U8:
     case FCVImageType::PKG_RGBA_U8:
     case FCVImageType::PKG_BGRA_U8:
-        flip_c((unsigned char*)src_ptr, src_h, src_w, sc, s_stride, 
+        flip_c((unsigned char*)src_ptr, src_h, src_w, sc, s_stride,
         (unsigned char*)dst_ptr, d_stride, type);
         break;
     case FCVImageType::GRAY_F32:
