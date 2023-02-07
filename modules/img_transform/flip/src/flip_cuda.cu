@@ -16,6 +16,9 @@
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
+constexpr int chn_dim = 4;
+__constant__ int gpu_chn_table[chn_dim][chn_dim];
+static int cpu_chn_table[chn_dim][chn_dim] = {{-1}, {-2, 0}, {-3, -1, 1}, {-4, -2, 0, 2}};
 /*
  1 2 3
  4 5 6
@@ -42,13 +45,16 @@ __global__ void flip_x_c(const T* src, int src_h, int src_w, int stride,
  7 8 9  | 9 8 7
 *****flip_y*****
 */
+// src_w = img_width * img_channel
 template <typename T>
-__global__ void flip_y_c(const T* src, int src_h, int src_w,
+__global__ void flip_y_c(const T* src, int src_h, int src_w, int src_c,
                          int stride, T* dst) {
     const int x = blockDim.x * blockIdx.x + threadIdx.x;
     const int y = blockDim.y * blockIdx.y + threadIdx.y;
     if (x < src_w && y < src_h) {
-        dst[x + y * stride] = src[(src_w - 1 - x) + y * stride];
+        const int m = gpu_chn_table[src_c - 1][x % src_c];
+        // printf("x: %d y: %d coef: %d ", x, y, m);
+        dst[x + y * stride] = src[(src_w + m - x) + y * stride];
     }
 }
 
@@ -65,7 +71,8 @@ void flip_c(const T* src, int src_h, int src_w, int src_c, int stride, T* dst,
     if (FlipType::X == type) {
         flip_x_c<<<grids, blocks>>>(src, src_h, data_w, stride, dst);
     } else if (FlipType::Y == type) {
-        flip_y_c<<<grids, blocks>>>(src, src_h, data_w, stride, dst);
+        cudaMemcpyToSymbol(gpu_chn_table, cpu_chn_table, sizeof(int) * chn_dim * chn_dim);
+        flip_y_c<<<grids, blocks>>>(src, src_h, data_w, src_c, stride, dst);
     } else {
         LOG_ERR("flip type not support yet !");
     }
@@ -100,8 +107,8 @@ int flip(const CudaMat& src, CudaMat& dst, FlipType type, Stream& stream) {
         CUDADeviceInfo::get_instance()->device_attrs[device_id].coherent_flag;
 
     if (coherent_flag) {
-        CUDA_CHECK(cudaMemPrefetchAsync(src.data(), src.total_byte_size(),
-                                        device_id));
+        CUDA_CHECK(
+            cudaMemPrefetchAsync(src.data(), src.total_byte_size(), device_id));
     }
 
     const int src_w = src.width();
@@ -111,6 +118,8 @@ int flip(const CudaMat& src, CudaMat& dst, FlipType type, Stream& stream) {
 
     const int src_c = src.channels();
     const int stride = src.stride();
+
+    // printf("channel: %d \n", src_c);
 
     switch (src.type()) {
         case FCVImageType::GRAY_U8:
@@ -136,7 +145,7 @@ int flip(const CudaMat& src, CudaMat& dst, FlipType type, Stream& stream) {
                    (unsigned char*)dst_ptr, type);
 
             flip_c(((unsigned char*)src_ptr + stride * src_h), (src_h >> 1),
-                   src_w, 1, stride, ((unsigned char*)dst_ptr + stride * src_h),
+                   (src_w >> 1), 2, stride, ((unsigned char*)dst_ptr + stride * src_h),
                    type);
             break;
         default:
