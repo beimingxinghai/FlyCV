@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "modules/core/base/include/type_info.h"
-#include "modules/img_calculation/matrix_mul/interface/cuda_matrix_mul.h"
+#include "modules/img_calculation/matrix_mul/interface/matrix_mul_cuda.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
@@ -36,7 +36,7 @@ __global__ void matrix_mul_c1(T* dst, T* src0, T* src1, int w, int h, int k) {
         if (tx < w && ty < h) {
             tile_0[threadIdx.y][threadIdx.x] = src0[row0];
             tile_1[threadIdx.y][threadIdx.x] = src1[row1];
-            
+
             __syncthreads();
 
             for (int j = 0; j < BLOCK_SIZE; j++) {
@@ -99,7 +99,7 @@ int cuda_matrix_mul(CudaMat& dst, const CudaMat& src0, const CudaMat& src1) {
     if (dst_c == 1) {
         switch(type_info.data_type) {
             case DataType::UINT16:
-                matrix_mul_c1<unsigned short><<<gridsize, blocksize>>>((unsigned short*)dst.data(), 
+                matrix_mul_c1<unsigned short><<<gridsize, blocksize>>>((unsigned short*)dst.data(),
                     (unsigned short*)src0.data(), (unsigned short*)src1.data(), dst_w, dst_h, mat_k);
                 break;
             case DataType::SINT32:

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "modules/img_transform/flip/interface/cuda_flip.h"
+#include "modules/img_transform/flip/interface/flip_cuda.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 

@@ -16,7 +16,7 @@
 
 #include "modules/core/base/include/type_info.h"
 #include "modules/core/base/include/utils.h"
-#include "modules/img_transform/extract_channel/interface/cuda_extract_channel.h"
+#include "modules/img_transform/extract_channel/interface/extract_channel_cuda.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 

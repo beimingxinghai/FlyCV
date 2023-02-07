@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "modules/core/base/include/type_info.h"
-#include "modules/img_transform/crop/interface/cuda_crop.h"
+#include "modules/img_transform/crop/interface/crop_cuda.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
@@ -66,7 +66,7 @@ int crop(const CudaMat& src, CudaMat& dst, Rect& drect, Stream& stream) {
 
     if (dst.empty() || dst.type() != src.type() ||
         dst.width() != drect.width() || dst.height() != drect.height()) {
-        LOG_ERR("create new CudaMat!");
+        // LOG_ERR("create new CudaMat!");
         dst = CudaMat(drect.width(), drect.height(), src.type());
     }
 

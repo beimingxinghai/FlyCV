@@ -44,7 +44,7 @@ macro(fcv_collect_module _module_path)
     endif()
 
     if(NOT WITH_CUDA_SUPPORT)
-        list(FILTER lib_sources EXCLUDE REGEX "cuda_.+\.cpp")
+        list(FILTER lib_sources EXCLUDE REGEX ".+_cuda\.cpp")
     endif()
 
     # cuda compute support

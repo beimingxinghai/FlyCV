@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include "modules/core/base/include/type_info.h"
-#include "modules/fusion_api/split_to_memcpy/interface/cuda_split_to_memcpy.h"
+#include "modules/fusion_api/split_to_memcpy/interface/split_to_memcpy_cuda.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
