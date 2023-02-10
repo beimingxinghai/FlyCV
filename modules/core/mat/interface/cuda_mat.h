@@ -57,6 +57,9 @@ public:
     //! copy constructor
     CudaMat(const CudaMat& m);
 
+    //! asignment constructor
+    CudaMat& operator=(const CudaMat& m);
+
     //! destructor - calls release()
     ~CudaMat();
 

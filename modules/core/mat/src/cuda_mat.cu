@@ -121,30 +121,34 @@ CudaMat::CudaMat(
 }
 
 CudaMat::CudaMat(const CudaMat& m)
-    : _width(m.width()),
-      _height(m.height()),
-      _stride(m.stride()),
-      _flag(m.flag()),
-      _type(m.type()),
+    : _width(m._width),
+      _height(m._height),
+      _stride(m._stride),
+      _flag(m._flag),
+      _type(m._type),
       _platform(PlatformType::CUDA),
-      _data(nullptr),
-      _allocator(nullptr) {
+      _data(m._data),
+      _allocator(m._allocator) {
     parse_type_info();
-    _allocator =
-        get_allocator_from_platform(_total_byte_size, _platform, _flag);
-    if (!_allocator) {
-        LOG_ERR("Failed to init CudaMat!");
-        return;
+}
+
+CudaMat& CudaMat::operator=(const CudaMat& m) {
+    if (this == &m) {
+        return *this;
     }
 
-    bool res = _allocator->get_data(&_data);
+    _width = m._width;
+    _height = m._height;
+    _stride = m._stride;
+    _flag = m._flag;
+    _type = m._type;
+    _platform = PlatformType::CUDA;
+    _data = m._data;
+    _allocator = m._allocator;
 
-    if (!res) {
-        LOG_ERR("Failed to get CudaMat data address!");
-        return;
-    }
+    parse_type_info();
 
-    CUDA_CHECK(cudaMemcpy(_data, m.data(), _total_byte_size, cudaMemcpyDeviceToDevice));
+    return *this;
 }
 
 CudaMat::~CudaMat() { _allocator = nullptr; }
