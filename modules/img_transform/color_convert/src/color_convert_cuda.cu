@@ -44,11 +44,19 @@ __global__ void convert_from_yuv420sp_kernel(const unsigned char* y_ptr,
 
     if (x < src_w && y < src_h) {
         int Y_index = x + y * src_stride;
-        int VU_index = (x / 2) * 2 + y / 2 * src_stride;
+        int VU_index = fcv_floor_cuda(x / 2) * 2 + fcv_floor_cuda(y / 2) * src_stride;
         int dst_index = x * channel + y * dst_stride;
-        int Y_value = y_ptr[Y_index];
-        int V_value = is_nv12 ? vu_ptr[VU_index + 1] : vu_ptr[VU_index];
-        int U_value = is_nv12 ? vu_ptr[VU_index] : vu_ptr[VU_index + 1];
+        int Y_value = FCV_MAX(y_ptr[Y_index], 16);
+        int V_value = 0;
+        int U_value = 0;
+
+        if (is_nv12) {
+            U_value = vu_ptr[VU_index];
+            V_value = vu_ptr[VU_index + 1];
+        } else {
+            V_value = vu_ptr[VU_index];
+            U_value = vu_ptr[VU_index + 1];
+        }
 
         // R
         dst_ptr[dst_index + r_idx] = fcv_cast_u8_cuda(1.164 * (Y_value - 16) + 1.596 * (V_value - 128));
@@ -62,6 +70,16 @@ __global__ void convert_from_yuv420sp_kernel(const unsigned char* y_ptr,
         if (channel == 4) {
             dst_ptr[dst_index + 3] = 255;
         }
+
+        // printf("x: %d y: %d Y_value: %d V_value: %d U_value:%d Y_index: %d VU_index: %d dst_index: %d ",
+        //        x,
+        //        y,
+        //        Y_value,
+        //        V_value,
+        //        U_value,
+        //        Y_index,
+        //        VU_index,
+        //        dst_index);
     }
 }
 
@@ -71,6 +89,8 @@ static void convert_from_yuv420sp(const CudaMat& src, CudaMat& dst, bool is_nv12
     const int src_c = src.channels();
     const int src_stride = src.stride();
     const int dst_stride = dst.stride();
+
+    // printf("src_stride: %d dst_stride: %d \n", src_stride, dst_stride);
 
     CHECK_CVT_SIZE(((src_w % 2) == 0) && ((src_h % 2) == 0));
 
@@ -113,21 +133,28 @@ __global__ void convert_to_yuv420sp_kernel(const unsigned char* src_ptr,
     if (x < src_w && y < src_h) {
         int BGR_index = x * channel + y * src_stride;
         int Y_index = x + y * dst_stride;
-        int VU_index = fcv_floor_cuda(x / 2) * 2 + y / 2 * dst_stride;
 
         int B_value = src_ptr[BGR_index + b_idx];
         int G_value = src_ptr[BGR_index + 1];
         int R_value = src_ptr[BGR_index + r_idx];
 
+        double y_value = 0.257 * R_value + 0.504 * G_value + 0.098 * B_value + 16;
+
         // Y
-        y_ptr[Y_index] = fcv_cast_u8_cuda(0.257 * R_value + 0.504 * G_value + 0.098 * B_value + 16);
+        y_ptr[Y_index] = fcv_cast_u8_cuda(y_value);
+
         // VU
-        if (is_nv12) {
-            vu_ptr[VU_index + 1] = fcv_cast_u8_cuda(0.439 * R_value - 0.368 * G_value - 0.071 * B_value + 128);
-            vu_ptr[VU_index] = fcv_cast_u8_cuda(-0.148 * R_value - 0.291 * G_value + 0.439 * B_value + 128);
-        } else {
-            vu_ptr[VU_index] = fcv_cast_u8_cuda(0.439 * R_value - 0.368 * G_value - 0.071 * B_value + 128);
-            vu_ptr[VU_index + 1] = fcv_cast_u8_cuda(-0.148 * R_value - 0.291 * G_value + 0.439 * B_value + 128);
+        if (x % 2 == 0 && y % 2 == 0) {
+            int VU_index = x + (y / 2) * dst_stride;
+            double v_value = 0.439 * R_value - 0.368 * G_value - 0.071 * B_value + 128;
+            double u_value = -0.148 * R_value - 0.291 * G_value + 0.439 * B_value + 128;
+            if (is_nv12) {
+                vu_ptr[VU_index] = fcv_cast_u8_cuda(u_value);
+                vu_ptr[VU_index + 1] = fcv_cast_u8_cuda(v_value);
+            } else {
+                vu_ptr[VU_index] = fcv_cast_u8_cuda(v_value);
+                vu_ptr[VU_index + 1] = fcv_cast_u8_cuda(u_value);
+            }
         }
     }
 }
@@ -137,6 +164,8 @@ static void convert_to_yuv420sp(const CudaMat& src, CudaMat& dst, bool is_nv_12,
     const int src_h = src.height();
     const int src_stride = src.stride();
     const int dst_stride = dst.stride();
+
+    // printf("src_stride: %d dst_stride: %d \n", src_stride, dst_stride);
 
     CHECK_CVT_SIZE(dst.height() != (src.height() * 3 / 2));
 
@@ -169,9 +198,9 @@ __global__ void convert_from_I420_kernel(const unsigned char* y_ptr,
 
     if (x < src_w && y < src_h) {
         int Y_index = x + y * src_stride;
-        int VU_index = x / 2 + y / 2 * (src_stride >> 1);
+        int VU_index = x / 2 + y / 2 * (src_stride / 2);
         int dst_index = x * channel + y * dst_stride;
-        int Y_value = y_ptr[Y_index];
+        int Y_value = FCV_MAX(y_ptr[Y_index], 16);
         int V_value = v_ptr[VU_index];
         int U_value = u_ptr[VU_index];
 
@@ -202,7 +231,7 @@ static void convert_from_I420(const CudaMat& src, CudaMat& dst, int b_idx, int r
     const unsigned char* y_ptr = (const unsigned char*)src.data();
     const unsigned char* vu_ptr = y_ptr + src_stride * src_h;
     const unsigned char* u_ptr = vu_ptr;
-    const unsigned char* v_ptr = vu_ptr + src_stride * (src_h >> 2);
+    const unsigned char* v_ptr = vu_ptr + src_stride * (src_h / 4);
 
     unsigned char* dst_ptr = (unsigned char*)dst.data();
 
@@ -596,7 +625,7 @@ __device__ void convertTo565_device(const unsigned short b,
                                     const unsigned short r,
                                     unsigned short* dst) {
     // rrrr rggg gggb bbbb
-    *dst= (b >> 3) | ((g << 3) & (0x07E0)) | ((r << 8) & (0xF800));
+    *dst = (b >> 3) | ((g << 3) & (0x07E0)) | ((r << 8) & (0xF800));
     // printf("%x %x ", b, *dst);
 }
 
@@ -733,8 +762,8 @@ __global__ void convert_rgba_to_mrgba_kernel(
     const unsigned char half_val = 128;
 
     if (x < src_w && y < src_h) {
-        int src_index = x << 2 + y * src_stride;
-        int dst_index = x << 2 + y * dst_stride;
+        int src_index = x * 4 + y * src_stride;
+        int dst_index = x * 4 + y * dst_stride;
 
         unsigned char v0 = src_ptr[src_index];
         unsigned char v1 = src_ptr[src_index + 1];
@@ -754,6 +783,8 @@ static void convert_rgba_to_mrgba(const CudaMat& src, CudaMat& dst) {
 
     const int src_stride = src.stride();
     const int dst_stride = dst.stride();
+
+    // printf("src_stride: %d dst_stride: %d \n", src_stride, dst_stride);
     const unsigned char* src_ptr = (const unsigned char*)src.data();
     unsigned char* dst_ptr = (unsigned char*)dst.data();
 

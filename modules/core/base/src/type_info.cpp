@@ -30,7 +30,7 @@ int get_type_info(FCVImageType type, TypeInfo& type_info) {
                 1,
                 sizeof(char),
                 sizeof(char),
-                sizeof(char), 
+                sizeof(char),
                 LayoutType::SINGLE}));
 
         s_type_info.insert(KeyVal(FCVImageType::GRAY_U16,

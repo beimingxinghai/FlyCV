@@ -196,7 +196,7 @@ int CudaMat::parse_type_info() {
     int status = get_type_info(_type, type_info);
 
     if (status != 0) {
-        LOG_ERR("Unsupport image type!");
+        LOG_ERR("Unsupport image type: %d", _type);
         return -1;
     }
 

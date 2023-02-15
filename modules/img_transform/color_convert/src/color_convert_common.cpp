@@ -28,6 +28,7 @@ int get_cvt_color_dst_mat_type(ColorConvertType type) {
         ElemType.insert(KV(ColorConvertType::CVT_PA_BGR2PA_RGB, FCVImageType::PKG_RGB_U8));
         ElemType.insert(KV(ColorConvertType::CVT_PA_RGB2PA_BGR, FCVImageType::PKG_BGR_U8));
         ElemType.insert(KV(ColorConvertType::CVT_PA_BGRA2PA_BGR, FCVImageType::PKG_BGR_U8));
+        ElemType.insert(KV(ColorConvertType::CVT_PA_BGRA2PA_RGB, FCVImageType::PKG_RGB_U8));
         ElemType.insert(KV(ColorConvertType::CVT_PA_RGBA2PA_RGB, FCVImageType::PKG_RGB_U8));
         ElemType.insert(KV(ColorConvertType::CVT_PA_RGBA2PA_BGR, FCVImageType::PKG_BGR_U8));
         ElemType.insert(KV(ColorConvertType::CVT_PA_RGBA2PA_BGRA, FCVImageType::PKG_BGRA_U8));
