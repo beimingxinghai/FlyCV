@@ -108,7 +108,7 @@ int add_weighted(CudaMat& src1, double alpha, CudaMat& src2, double beta, double
                 src1_ptr, alpha, src2_ptr, beta, dst_ptr, gamma, width, height, channel, stride);
     } break;
     default:
-        LOG_ERR("subtract is not support this type, the current src element data type is %d",
+        LOG_ERR("add weighted is not support this type, the current src element data type is %d",
                 int(cur_type_info.data_type));
         return -1;
     }
