@@ -154,6 +154,9 @@
 #endif
 #ifdef WITH_FCV_ADD_WEIGHTED
 #include "modules/img_transform/add_weighted/interface/add_weighted.h"
+#ifdef WITH_CUDA_SUPPORT
+#include "modules/img_transform/add_weighted/interface/add_weighted_cuda.h"
+#endif
 #endif
 #ifdef WITH_FCV_EXTRACT_CHANNEL
 #include "modules/img_transform/extract_channel/interface/extract_channel.h"
