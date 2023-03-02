@@ -54,6 +54,7 @@ static void cal_coord_and_coeff(
         }
 
         // Stores a collection of nearest point (x, y) integers，same for each channel
+        // 存储的是坐标数据位置偏移
         ofs[dst_xy] = src_xy_down * channel;
 
         // Stores a collection of nearest integer distance from the point (x, y) in the target image, u and v
@@ -78,6 +79,7 @@ static void cal_coord_and_coeff(
         // Round down to find the nearest integer the point (x, y)
         int src_xy_down = (int) floor(static_cast<float>(src_xy));
         src_xy -= src_xy_down;
+        // 量化系数2048
         int uv_xy = static_cast<int>(fcv_round(src_xy * INTER_RESIZE_COEF_SCALE));
 
         // Check for minimum out-of-bounds
@@ -117,6 +119,7 @@ static void cal_coord_and_coeff(
         // Round down to find the nearest integer the point (x, y)
         int src_xy_down = (int) floor(static_cast<float>(src_xy));
         src_xy -= src_xy_down;
+        // 系数量化 2^7
         int uv_xy = static_cast<int>(fcv_round(src_xy * 128));
 
         // Check for minimum out-of-bounds
@@ -132,9 +135,11 @@ static void cal_coord_and_coeff(
         }
 
         // Stores a collection of nearest point (x, y) integers，same for each channel
+        // 存储映射坐标
         ofs[dst_xy] = src_xy_down * channel;
 
         // Stores a collection of nearest integer distance from the point (x, y) in the target image, u and v
+        // 存储u与1-u
         int id_xy = dst_xy << 1;
         alpha[id_xy] = fcv_cast_u8(128 - uv_xy);
         alpha[id_xy + 1] = fcv_cast_u8(uv_xy);
@@ -164,9 +169,10 @@ void nearest_cal_offset(
     }
 }
 
+// 确定映射坐标存储位置， u,v系数存储位置， 先横向差值再纵向差值
 #define  GetBnResizeBufPreparation(type)                                    \
-    double scale_x = (double)src_w / w;                                   \
     double scale_y = (double)src_h / h;                                   \
+    double scale_x = (double)src_w / w;                                   \
     int dou_w = w + w;                                                    \
     int* xofs = *buf;                                                     \
     int* yofs = xofs + w;                                                 \
@@ -186,6 +192,7 @@ void get_resize_bilinear_buf_c1(
     cal_coord_and_coeff(h, scale_y, src_h, 1, yofs, beta);
 }
 
+// 获得映射坐标与系数缓存
 void get_resize_bilinear_buf(
         int src_w,
         int src_h,
@@ -291,6 +298,7 @@ void hresize_bn_one_row(
     }
 }
 
+// 输入输出数据为char
 void resize_bilinear_cn_common(
         const unsigned char* src,
         unsigned char* dst,
@@ -303,12 +311,17 @@ void resize_bilinear_cn_common(
         const int channel) {
     int* buf = nullptr;
     unsigned short *rows = nullptr;
+    // 坐标映射buf大小,正常需要3 * (dst_w + dst_h)
     int buf_size = (dst_w + dst_h) << 3;
+    // 计算中间数据缓存，正常需要2 * dst_stride
     int rows_size = dst_stride << 3;
     buf = (int *)malloc(buf_size);
     rows = (unsigned short*)malloc(rows_size);
+
+    // 获取映射数据
     get_resize_bilinear_buf(src_w, src_h, dst_w, dst_h, channel, &buf);
 
+    // 各数据内存地址
     int* xofs = buf;
     int* yofs = buf + dst_w;
     unsigned short* alpha = (unsigned short*)(yofs + dst_h);
@@ -318,6 +331,7 @@ void resize_bilinear_cn_common(
     unsigned short* rows1 = nullptr;
     unsigned char* ptr_dst = nullptr;
 
+    // 先横后纵
     int dy = 0, dx= 0, sy0 = 0;
     for (; dy < dst_h; dy++) {
         rows0 = rows;
@@ -326,9 +340,11 @@ void resize_bilinear_cn_common(
         unsigned short *alphap = alpha;
         ptr_dst = dst + dst_stride * dy;
 
+        // 计算两行插值，写到rows0 rows1
         hresize_bn_one_row(src, xofs, sy0, src_stride,
                 dst_w, channel, alphap, rows0, rows1);
 
+        // 计算纵向插值
         unsigned int b0 = *(beta++);
         unsigned int b1 = *(beta++);
         for (dx = 0; dx < dst_stride; dx++) {
@@ -347,6 +363,7 @@ void resize_bilinear_cn_common(
     }
 }
 
+// 输入输出数据为float
 void resize_bilinear_cn_common(
         const float* src,
         float* dst,
@@ -360,8 +377,11 @@ void resize_bilinear_cn_common(
     int size = dst_w + dst_h;
     int rows_size = dst_stride << 1;
 
+    // 系数存储空间
     float* coeff_buf = (float *)malloc(size * 2 * sizeof(float));
+    // 映射坐标存储空间
     int* coord_buf = (int *)malloc(size * sizeof(int));
+    // 横向差值存储空间
     float* rows = (float*)malloc(rows_size * sizeof(float));
     get_resize_bilinear_buf(src_w, src_h, dst_w, dst_h, channel, &coeff_buf, &coord_buf);
 
@@ -411,6 +431,7 @@ void resize_bilinear_cn_common(
     }
 }
 
+// Y使用双线性插值， UV使用最邻近插值
 void resize_bilinear_yuv_common(
         const unsigned char* src,
         unsigned char* dst,
@@ -535,7 +556,7 @@ int resize_bilinear_common(Mat& src, Mat& dst) {
         break;
     case FCVImageType::PKG_RGB_F32:
     case FCVImageType::PKG_BGR_F32:
-        resize_bilinear_cn_common((const float*)src.data(), 
+        resize_bilinear_cn_common((const float*)src.data(),
                 (float*)dst.data(), src.width(), src.height(),
                 dst.width(), dst.height(), src.stride(), dst.stride(), 3);
         break;
@@ -724,6 +745,7 @@ void resize_cubic_cn_common(Mat& src, Mat& dst, int channels) {
     int rows_size = d_stride * 4 * sizeof(int);
     buf = (int*)malloc(buf_size);
     rows = (int*)malloc(rows_size);
+    // 计算16个点值的权重系数
     get_resize_cubic_buf(src_w, src_h, dst_w, dst_h, channels, &buf);
     int* xofs = buf;
     int* yofs = buf + dst_w;
@@ -1141,6 +1163,7 @@ void resize_area_cn_common(
     int iscale_x = fcv_round(scale_x);
     int iscale_y = fcv_round(scale_y);
 
+    // 如果缩小的是整数倍
     bool is_area_fast = std::abs(scale_x - iscale_x) < FCV_EPSILON
             && std::abs(scale_y - iscale_y) < FCV_EPSILON;
     int cn = src.channels();
@@ -1148,6 +1171,7 @@ void resize_area_cn_common(
     // 缩小图像
     if (scale_x >= 1 && scale_y >= 1) {
         int k = 0, sx = 0, sy = 0, dx = 0, dy = 0;
+        // 快速缩放
         if (is_area_fast) {
             bool fast_mode = scale_x == 2 && scale_y == 2 && (cn == 1 || cn == 3 || cn == 4);
             int area = iscale_x * iscale_y;
@@ -1260,7 +1284,7 @@ void resize_area_cn_common(
             }
 
             free(ofs);
-            return;  
+            return;
         }
 
         // 缩小图像不为整倍数
