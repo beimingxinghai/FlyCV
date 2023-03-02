@@ -63,7 +63,7 @@ int extract_channel(Mat& _src, Mat& _dst, int _index) {
 #else
     ret = extract_channel_common(_src, _dst, _index);
 #endif
-    return 0;
+    return ret;
 }
 
 G_FCV_NAMESPACE1_END()

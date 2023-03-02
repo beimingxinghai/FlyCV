@@ -54,6 +54,7 @@ static void cal_coord_and_coeff(
         }
 
         // Stores a collection of nearest point (x, y) integers，same for each channel
+        // 存储的是坐标数据位置偏移
         ofs[dst_xy] = src_xy_down * channel;
 
         // Stores a collection of nearest integer distance from the point (x, y) in the target image, u and v
@@ -78,6 +79,7 @@ static void cal_coord_and_coeff(
         // Round down to find the nearest integer the point (x, y)
         int src_xy_down = (int) floor(static_cast<float>(src_xy));
         src_xy -= src_xy_down;
+        // 量化系数2048
         int uv_xy = static_cast<int>(fcv_round(src_xy * INTER_RESIZE_COEF_SCALE));
 
         // Check for minimum out-of-bounds
@@ -117,6 +119,7 @@ static void cal_coord_and_coeff(
         // Round down to find the nearest integer the point (x, y)
         int src_xy_down = (int) floor(static_cast<float>(src_xy));
         src_xy -= src_xy_down;
+        // 系数量化 2^7
         int uv_xy = static_cast<int>(fcv_round(src_xy * 128));
 
         // Check for minimum out-of-bounds
@@ -132,9 +135,11 @@ static void cal_coord_and_coeff(
         }
 
         // Stores a collection of nearest point (x, y) integers，same for each channel
+        // 存储映射坐标
         ofs[dst_xy] = src_xy_down * channel;
 
         // Stores a collection of nearest integer distance from the point (x, y) in the target image, u and v
+        // 存储u与1-u
         int id_xy = dst_xy << 1;
         alpha[id_xy] = fcv_cast_u8(128 - uv_xy);
         alpha[id_xy + 1] = fcv_cast_u8(uv_xy);
@@ -164,9 +169,10 @@ void nearest_cal_offset(
     }
 }
 
+// 确定映射坐标存储位置， u,v系数存储位置， 先横向差值再纵向差值
 #define  GetBnResizeBufPreparation(type)                                    \
-    double scale_x = (double)src_w / w;                                   \
     double scale_y = (double)src_h / h;                                   \
+    double scale_x = (double)src_w / w;                                   \
     int dou_w = w + w;                                                    \
     int* xofs = *buf;                                                     \
     int* yofs = xofs + w;                                                 \
@@ -186,6 +192,7 @@ void get_resize_bilinear_buf_c1(
     cal_coord_and_coeff(h, scale_y, src_h, 1, yofs, beta);
 }
 
+// 获得映射坐标与系数缓存
 void get_resize_bilinear_buf(
         int src_w,
         int src_h,
@@ -266,6 +273,7 @@ void hresize_bn_one_row(
         float* rows0,
         float* rows1) {
     const int sy_off = sy * stride;
+    // 两行指针
     const float *src0 = (float*)(src_ptr + sy_off);
     const float *src1 = (float*)(src_ptr + sy_off + stride);
 
@@ -291,6 +299,7 @@ void hresize_bn_one_row(
     }
 }
 
+// 输入输出数据为char
 void resize_bilinear_cn_common(
         const unsigned char* src,
         unsigned char* dst,
@@ -303,12 +312,17 @@ void resize_bilinear_cn_common(
         const int channel) {
     int* buf = nullptr;
     unsigned short *rows = nullptr;
+    // 坐标映射buf大小,正常需要3 * (dst_w + dst_h)
     int buf_size = (dst_w + dst_h) << 3;
+    // 计算中间数据缓存，正常需要2 * dst_stride
     int rows_size = dst_stride << 3;
     buf = (int *)malloc(buf_size);
     rows = (unsigned short*)malloc(rows_size);
+
+    // 获取映射数据
     get_resize_bilinear_buf(src_w, src_h, dst_w, dst_h, channel, &buf);
 
+    // 各数据内存地址
     int* xofs = buf;
     int* yofs = buf + dst_w;
     unsigned short* alpha = (unsigned short*)(yofs + dst_h);
@@ -318,6 +332,7 @@ void resize_bilinear_cn_common(
     unsigned short* rows1 = nullptr;
     unsigned char* ptr_dst = nullptr;
 
+    // 先横后纵
     int dy = 0, dx= 0, sy0 = 0;
     for (; dy < dst_h; dy++) {
         rows0 = rows;
@@ -326,9 +341,11 @@ void resize_bilinear_cn_common(
         unsigned short *alphap = alpha;
         ptr_dst = dst + dst_stride * dy;
 
+        // 计算两行插值，写到rows0 rows1
         hresize_bn_one_row(src, xofs, sy0, src_stride,
                 dst_w, channel, alphap, rows0, rows1);
 
+        // 计算纵向插值
         unsigned int b0 = *(beta++);
         unsigned int b1 = *(beta++);
         for (dx = 0; dx < dst_stride; dx++) {
@@ -347,6 +364,7 @@ void resize_bilinear_cn_common(
     }
 }
 
+// 输入输出数据为float
 void resize_bilinear_cn_common(
         const float* src,
         float* dst,
@@ -360,8 +378,11 @@ void resize_bilinear_cn_common(
     int size = dst_w + dst_h;
     int rows_size = dst_stride << 1;
 
+    // 系数存储空间
     float* coeff_buf = (float *)malloc(size * 2 * sizeof(float));
+    // 映射坐标存储空间
     int* coord_buf = (int *)malloc(size * sizeof(int));
+    // 横向差值存储空间
     float* rows = (float*)malloc(rows_size * sizeof(float));
     get_resize_bilinear_buf(src_w, src_h, dst_w, dst_h, channel, &coeff_buf, &coord_buf);
 
@@ -411,6 +432,7 @@ void resize_bilinear_cn_common(
     }
 }
 
+// Y使用双线性插值， UV使用最邻近插值
 void resize_bilinear_yuv_common(
         const unsigned char* src,
         unsigned char* dst,
@@ -450,6 +472,7 @@ void resize_bilinear_yuv_common(
     unsigned char *ptr_uv = nullptr;
 
     int dy = 0, dx= 0, sy0 = 0, sy1 = 0;
+    // 对于nv21/nv12 两行同时计算
     for (; dy < dst_h; dy += 2) {
         const int dst_offset = dst_w * dy;
         rows00 = rows;
@@ -535,7 +558,7 @@ int resize_bilinear_common(Mat& src, Mat& dst) {
         break;
     case FCVImageType::PKG_RGB_F32:
     case FCVImageType::PKG_BGR_F32:
-        resize_bilinear_cn_common((const float*)src.data(), 
+        resize_bilinear_cn_common((const float*)src.data(),
                 (float*)dst.data(), src.width(), src.height(),
                 dst.width(), dst.height(), src.stride(), dst.stride(), 3);
         break;
@@ -623,6 +646,8 @@ static void cal_ycoord_cubic_coeff(
     }
 }
 
+// 计算双三次差值算法坐标映射及权重
+// dst_size, src_size, scale, channel, coordinate, coeff
 static void cal_xcoord_cubic_coeff(
         int size,
         int s_size,
@@ -695,12 +720,18 @@ void get_resize_cubic_buf(
         int dst_h,
         int c,
         int** buf) {
+    // 放大系数
     float scale_x = (float)src_w / dst_w;
     float scale_y = (float)src_h / dst_h;
+    // 4倍x轴范围
     int fou_w = dst_w << 2;
+    // x轴坐标映射
     int* xofs = *buf;
+    // y轴坐标映射
     int* yofs = xofs + dst_w;
+    // x轴方向权重系数
     short* alpha = (short*)(yofs + dst_h);
+    // y轴方向权重系数
     short* beta  = (short*)(alpha + fou_w);
 
     cal_xcoord_cubic_coeff(dst_w, src_w, scale_x, c, xofs, alpha);
@@ -720,10 +751,15 @@ void resize_cubic_cn_common(Mat& src, Mat& dst, int channels) {
 
     int* buf = nullptr;
     int* rows = nullptr;
+    // 坐标映射与权重系数缓存，一个目标点对应x/y轴各4个，共16个点
     int buf_size  = (dst_h + dst_w) * sizeof(int) + (dst_h + dst_w) * 4 * sizeof(short);
+
+    // 每次缓存4行数据
     int rows_size = d_stride * 4 * sizeof(int);
     buf = (int*)malloc(buf_size);
     rows = (int*)malloc(rows_size);
+
+    // 计算16个点值的权重系数
     get_resize_cubic_buf(src_w, src_h, dst_w, dst_h, channels, &buf);
     int* xofs = buf;
     int* yofs = buf + dst_w;
@@ -742,7 +778,9 @@ void resize_cubic_cn_common(Mat& src, Mat& dst, int channels) {
     rows2 = rows1 + d_stride;
     rows3 = rows2 + d_stride;
     for (int i = 0; i < dst_h; i++) {
+        // 根据目标y轴计算源y坐标
         int sy = yofs[i];
+        // 拿到源y轴方向4行数据
         const unsigned char *src0 = (unsigned char*)(src_ptr + sy * s_stride);
         const unsigned char *src1 = (unsigned char*)(src_ptr + (sy + 1) * s_stride);
         const unsigned char *src2 = (unsigned char*)(src_ptr + (sy + 2) * s_stride);
@@ -750,6 +788,7 @@ void resize_cubic_cn_common(Mat& src, Mat& dst, int channels) {
 
         ptr_dst = dst_ptr + d_stride * i;
 
+        // 缓存4行数据
         short *alpha0 = alpha;
         int *rows0p = rows0;
         int *rows1p = rows1;
@@ -912,12 +951,15 @@ void get_resize_area_buf(
     int dou_w = w + w;
     int* xofs = *buf;
     int* yofs = xofs + w;
+    // 存储u 与 1-u，所以double
     unsigned short* alpha = (unsigned short*)(yofs + h);
     unsigned short* beta  = (unsigned short*)(alpha + dou_w);
 
     double fx = 0.f;
     int sx = 0, dx = 0, tx = 0;
+    // 计算x轴
     for (; dx < w; dx++) {
+        // 权重系数计算方式，取的映射到目标图像后坐标的差值
         sx = fcv_floor(dx * scale_x);
         fx = (float)((dx + 1) - (sx + 1) * inv_scale_x);
         fx = fx <= 0 ? 0.f : fx - fcv_floor(fx);
@@ -959,8 +1001,11 @@ void get_resize_area_buf(
 }
 
 struct DecimateAlpha {
+    // 源整数坐标索引
     int si;
+    // 目标整数坐标索引
     int di;
+    // 每个点的权重系数
     float alpha;
 };
 
@@ -976,6 +1021,7 @@ static int compute_resize_area_tab(
         double scale,
         DecimateAlpha* tab) {
     int k = 0;
+
     for (int dx = 0; dx < dsize; dx++) {
         double fsx1 = dx * scale;
         double fsx2 = fsx1 + scale;
@@ -986,6 +1032,7 @@ static int compute_resize_area_tab(
         sx2 = std::min(sx2, ssize - 1);
         sx1 = std::min(sx1, sx2);
 
+        // 计算对应偏移与取整后系数
         if (sx1 - fsx1 > 1e-3) {
             tab[k].di = dx * cn;
             tab[k].si = (sx1 - 1) * cn;
@@ -1008,6 +1055,12 @@ static int compute_resize_area_tab(
     return k;
 }
 
+// 邻域的x轴方向上的累加容易理解,每次计算一行,计算结束后,先判断y轴方向上是不是累加结束,
+// 没有结束,就在y轴方向做一次累加.假设当前进行的是邻域的y轴方向上最后一次累加,那么其实在判断的时候,是false的,
+// 然后进入else完成最后一次累加,但是累加结果还是存在sum中的,需要到计算下一个点的邻域累加的时候,才会判断为true,进入if,
+// 此时把上一点的邻域累加结果写入dst,然后把当前点的第一个x轴方向上的累加结果写入sum,注意是写入不是累加.这样一来,
+// 就需要在for循环之外增加一次写入.因为dst的最后一行数据计算结束,不会再进入for循环,因此需要在for循环之外,
+// 把sum中的结果写入dst.到此为止,resizeArea的计算结束了.
 void resize_area_decimal(
         const Mat& src,
         Mat& dst,
@@ -1022,18 +1075,23 @@ void resize_area_decimal(
     int src_w = src.width();
     int dst_w1 = dst.width() * cn;
     int dst_h = dst.height();
+    // 计算射回的区域x的累加缓存
     float* buf = (float*)malloc(sizeof(float) * dst_w1 * 2);
+    /// 计算映射回的区域y轴累加缓存
     float* sum = buf + dst_w1;
     int j_start = tabofs[0];
     int j_end = tabofs[dst_h];
     int j = 0, k = 0, dx = 0;
     int prev_dy = ytab[j_start].di;
 
+    // 对于每个dst_x的区域值和初始化
     for (dx = 0; dx < dst_w1; dx++) {
         sum[dx] = 0;
     }
 
+    // y轴映射表从头到尾
     for (j = j_start; j < j_end; j++) {
+        // 映射表y轴第j个映射的值
         float beta = ytab[j].alpha;
         int dy = ytab[j].di;
         int sy = ytab[j].si;
@@ -1043,6 +1101,7 @@ void resize_area_decimal(
                 buf[dx] = 0;
             }
 
+            // 映射表x轴，数值累加乘权重
             if (cn == 1) {
                 for (k = 0; k < xtab_size; k++) {
                     int dxn = xtab[k].di;
@@ -1097,20 +1156,28 @@ void resize_area_decimal(
             }
         }
 
+        //这里需要判断y轴方向上是否计算结束
+        // 结束
         if (dy != prev_dy) {
             unsigned char* D = dst_ptr + prev_dy * dst_w1;
             for (dx = 0; dx < dst_w1; dx++) {
+                // 如果计算结束,将邻域累加结果sum写入dst
                 D[dx] = fcv_saturate_cast<float>(sum[dx]);
+                // x轴方向上的累加结果写入sum,清理sum中存储的上一次的累加结果，开始当前点
                 sum[dx] = beta * buf[dx];
             }
             prev_dy = dy;
+        // 未结束
         } else {
+            // 没有计算结束,就将x轴方向邻域累加结果累加到sum
+            // 其实就是在做y轴方向邻域的累加
             for (dx = 0; dx < dst_w1; dx++) {
                 sum[dx] += beta * buf[dx];
             }
         }
     }
 
+    // 最后一次累加,写入dst最后一行
     unsigned char* D = dst_ptr + prev_dy * dst_w1;
     for (dx = 0; dx < dst_w1; dx++) {
         D[dx] = fcv_saturate_cast<float>(sum[dx]);
@@ -1138,9 +1205,11 @@ void resize_area_cn_common(
     double scale_x = 1. / inv_scale_x;
     double scale_y = 1. / inv_scale_y;
 
+    // 整数倍缩放
     int iscale_x = fcv_round(scale_x);
     int iscale_y = fcv_round(scale_y);
 
+    // 如果缩小的是整数倍，使用快速缩放
     bool is_area_fast = std::abs(scale_x - iscale_x) < FCV_EPSILON
             && std::abs(scale_y - iscale_y) < FCV_EPSILON;
     int cn = src.channels();
@@ -1148,24 +1217,32 @@ void resize_area_cn_common(
     // 缩小图像
     if (scale_x >= 1 && scale_y >= 1) {
         int k = 0, sx = 0, sy = 0, dx = 0, dy = 0;
+        // 快速缩放
         if (is_area_fast) {
+            // 支持fast mode的条件
             bool fast_mode = scale_x == 2 && scale_y == 2 && (cn == 1 || cn == 3 || cn == 4);
+            // src_w * src_h / (dst_w * dst_h)
             int area = iscale_x * iscale_y;
+            // dst / src
             float scale = 1.f / (area);
             size_t srcstep = src_w * cn;
+            // 原图步长
             int dwidth1 = (src_w / scale_x) * cn;
             int dst_w1 = dst_w * cn;
             int src_w1 = src_w * cn;
 
-            int* ofs = (int*)malloc(area + dst_w * cn);
+            // 分配权重和坐标映射
+            int* ofs = (int*)malloc((area + dst_w * cn) * sizeof(int));
             int* xofs = ofs + area;
 
+            // x1,y1为顶点区域像素与数据偏移对应关系， 每个区域的开始位置数据偏移对应关系
             for (sy = 0, k = 0; sy < iscale_y; sy++ ) {
                 for (sx = 0; sx < iscale_x; sx++ ) {
                     ofs[k++] = (int)(sy * srcstep + sx * cn);
                 }
             }
 
+            // x轴方向，坐标映射关系
             for (dx = 0; dx < dst_w; dx++) {
                 int j = dx * cn;
                 sx = iscale_x * j;
@@ -1174,22 +1251,29 @@ void resize_area_cn_common(
                 }
             }
 
+            // y轴方向开始计算
             for (dy = 0; dy < dst_h; dy++) {
+                // 输出数据每行计算
                 unsigned char *dst_row = dst_ptr + dy * dst_w * cn;
+                // 计算源数据区域的x1定点坐标值
                 int sy0 = dy * scale_y;
+                // w用作判断所有行按照常规算法是否计算完成，如果计算区域超出，w置0作为标识
                 int w = sy0 + scale_y <= src_h ? dwidth1 : 0;
 
+                // 如果y轴超出计算范围，目标图像值清空为0
                 if ( sy0 >= src_h) {
                     for ( dx = 0; dx < dst_w1; dx++) {
                         dst_row[dx] = 0;
                     }
                     continue;
                 }
+
                 // 缩小图像为整倍数，且为2
                 if (fast_mode) {
                     unsigned char* src_row = src_ptr + sy0 * src_w * cn;
                     unsigned char* nextS = src_row + src_w * cn;
                     dx = 0;
+                    // 计算相邻两行2x2区域均值，四舍五入
                     if (cn == 1) {
                         for (; dx < w; ++dx) {
                             int index = dx * 2;
@@ -1214,12 +1298,14 @@ void resize_area_cn_common(
                             dst_row[dx+2] = (src_row[index+2] + src_row[index+6] +
                                     nextS[index+2] + nextS[index+6] + 2) >> 2;
                             dst_row[dx+3] = (src_row[index+3] + src_row[index+7] +
-                                    nextS[index+2] + nextS[index+7] + 2) >> 2;
+                                    nextS[index+3] + nextS[index+7] + 2) >> 2;
                         }
                     }
                     continue;
                 }
-                // 缩小图像为整倍数，不为2
+
+                // 缩小图像为整倍数，不为2，正常计算区域平均值
+                // 代码块中循环展开，提升代码执行效率
                 for (dx = 0; dx < w; dx++) {
                     unsigned char *src_row = src_ptr + sy0 * src_w * cn + xofs[dx];
                     int sum = 0;
@@ -1236,10 +1322,13 @@ void resize_area_cn_common(
                     dst_row[dx] = fcv_saturate_cast<float>(sum * scale);
                 }
 
+                // y轴方向映射超出原图情况下，边界处理，如果w < dwidth就需要执行
                 for(; dx < dst_w1; dx++) {
                     int sum = 0;
                     int count = 0;
                     int sx0 = xofs[dx];
+
+                    // 超出x轴方向边界，清空
                     if (sx0 >= src_w1) {
                         dst_row[dx] = 0;
                     }
@@ -1260,16 +1349,18 @@ void resize_area_cn_common(
             }
 
             free(ofs);
-            return;  
+            return;
         }
 
-        // 缩小图像不为整倍数
+        // 缩小图像不为整倍数，计算映射表，对于每个si对应di
         DecimateAlpha* _xytab = (DecimateAlpha*)malloc(sizeof(DecimateAlpha) * (src_w + src_h) * 2);
         DecimateAlpha* xtab = _xytab;
         DecimateAlpha* ytab = xtab + src_w * 2;
 
+        // 计算x,y轴映射
         int xtab_size = compute_resize_area_tab(src_w, dst_w, cn, scale_x, xtab);
         int ytab_size = compute_resize_area_tab(src_h, dst_h, 1, scale_y, ytab);
+        // 每个映射点的height方向在映射表中的起始位置
         int* _tabofs = (int*)malloc(sizeof(int) * (dst_h + 1));
         int* tabofs = _tabofs;
         for (k = 0, dy = 0; k < ytab_size; k++) {
@@ -1277,22 +1368,27 @@ void resize_area_cn_common(
                 tabofs[dy++] = k;
             }
         }
-
         tabofs[dy] = ytab_size;
+
         resize_area_decimal(src, dst, xtab, xtab_size, ytab, tabofs);
         free(_xytab);
         free(_tabofs);
         return;
     }
 
-    // 放大图像
+    // 放大图像，使用inter_linear算法，系数计算方式不一致
     int* buf = nullptr;
     unsigned short *rows = nullptr;
     int buf_size = (dst_w + dst_h) << 3;
     int rows_size = d_stride << 3;
+    // 坐标映射buf大小,正常需要3 * (dst_w + dst_h)
     buf = (int*)malloc(buf_size);
+    // 计算中间数据缓存，正常需要2 * dst_stride
     rows = (unsigned short*)malloc(rows_size);
+
+    // 计算映射关系及权重系数
     get_resize_area_buf(src_w, src_h, dst_w, dst_h, channel, inv_scale_x, inv_scale_y, &buf);
+
     int* xofs = buf;
     int* yofs = buf + dst_w;
     unsigned short* alpha = (unsigned short*)(yofs + dst_h);
@@ -1309,9 +1405,11 @@ void resize_area_cn_common(
         unsigned short *alphap = alpha;
         ptr_dst = dst_ptr + d_stride * dy;
 
+        // 计算两行插值，写到rows0 rows1
         hresize_bn_one_row(src_ptr, xofs, sy0, s_stride,
                 dst_w, channel, alphap, rows0, rows1);
 
+        // 计算纵向插值
         unsigned int b0 = *(beta++);
         unsigned int b1 = *(beta++);
         for (dx = 0; dx < d_stride; dx++) {

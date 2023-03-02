@@ -118,6 +118,9 @@
 #endif
 #ifdef WITH_FCV_RESIZE
 #include "modules/img_transform/resize/interface/resize.h"
+#ifdef WITH_CUDA_SUPPORT
+#include "modules/img_transform/resize/interface/resize_cuda.h"
+#endif
 #endif
 #ifdef WITH_FCV_WARP_AFFINE
 #include "modules/img_transform/warp_affine/interface/warp_affine.h"

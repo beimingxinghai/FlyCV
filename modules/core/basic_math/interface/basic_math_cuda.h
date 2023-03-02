@@ -83,6 +83,11 @@ __device__ static inline constexpr unsigned char fcv_cast_u8_cuda(const T& val) 
     return static_cast<unsigned char>(fcv_clamp_cuda(val, U8_MIN_VAL, U8_MAX_VAL));
 }
 
+template<class T>
+__device__ static inline constexpr T fcv_cast_cuda(const float& val) {
+    return static_cast<T>(fcv_clamp_cuda(val, U8_MIN_VAL, U8_MAX_VAL));
+}
+
 /**
  * @brief Check if two numbers are equal
  * @param[in] a supported type:int,float,double...
