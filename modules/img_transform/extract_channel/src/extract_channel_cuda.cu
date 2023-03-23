@@ -20,15 +20,13 @@
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
-const int TILE_DIM = 32;
-
 template <typename T>
-__global__ void extract_with_kernel(const T* src, int width, int height, int channel, int index, T* dst) {
-    const int nx = blockIdx.x * TILE_DIM + threadIdx.x;
-    const int ny = blockIdx.y * TILE_DIM + threadIdx.y;
-    const int nn = ny * width + nx;
-    if (nx < width && ny < height) {
-        dst[nn] = src[nn * channel + index];
+__global__ void extract_with_kernel(
+        const T* src, int src_w, int src_h, int src_c, int src_s, int dst_s, int dst_i, T* dst) {
+    const int nx = blockDim.x * blockIdx.x + threadIdx.x;
+    const int ny = blockDim.y * blockIdx.y + threadIdx.y;
+    if (nx < src_w && ny < src_h) {
+        dst[nx + ny * dst_s] = src[nx * src_c + ny * src_s + dst_i];
     }
 }
 
@@ -38,8 +36,8 @@ int extract_channel(CudaMat& _src, CudaMat& _dst, int _index, Stream& stream) {
         return -1;
     }
 
-    if (_dst.size().width() != _src.size().width() || _dst.size().height() != _src.size().height() ||
-        _dst.type() != FCVImageType::GRAY_U8) {
+    if (_dst.size().width() != _src.size().width() || _dst.size().height() != _src.size().height()
+        || _dst.type() != FCVImageType::GRAY_U8) {
         _dst = CudaMat(_src.size(), FCVImageType::GRAY_U8);
     }
 
@@ -70,10 +68,11 @@ int extract_channel(CudaMat& _src, CudaMat& _dst, int _index, Stream& stream) {
 
     const size_t src_size = _src.total_byte_size();
     const size_t dst_size = _dst.total_byte_size();
-    const int grid_size_x = (_src.width() + TILE_DIM - 1) / TILE_DIM;
-    const int grid_size_y = (_src.height() + TILE_DIM - 1) / TILE_DIM;
-    const dim3 block_size(TILE_DIM, TILE_DIM);
-    const dim3 grid_size(grid_size_x, grid_size_y);
+
+    dim3 blocks(32, 8);
+    int grid_x = fcv_ceil((_src.width() + blocks.x - 1) / (float)blocks.x);
+    int grid_y = fcv_ceil((_src.height() + blocks.y - 1) / (float)blocks.y);
+    dim3 grids(grid_x, grid_y);
 
     int device_id = 0;
     CUDA_CHECK(cudaGetDevice(&device_id));
@@ -84,12 +83,14 @@ int extract_channel(CudaMat& _src, CudaMat& _dst, int _index, Stream& stream) {
         CUDA_CHECK(cudaMemPrefetchAsync(_dst.data(), dst_size, device_id));
     }
 
-    extract_with_kernel<<<grid_size, block_size>>>((const unsigned char*)_src.data(),
-                                                   _src.width(),
-                                                   _src.height(),
-                                                   _src.channels(),
-                                                   _index,
-                                                   (unsigned char*)_dst.data());
+    extract_with_kernel<<<grids, blocks>>>((const unsigned char*)_src.data(),
+                                           _src.width(),
+                                           _src.height(),
+                                           _src.channels(),
+                                           _src.stride() / _src.type_byte_size(),
+                                           _dst.stride() / _dst.type_byte_size(),
+                                           _index,
+                                           (unsigned char*)_dst.data());
 
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());

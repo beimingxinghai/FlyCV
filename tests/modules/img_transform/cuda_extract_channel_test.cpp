@@ -28,7 +28,7 @@ class CudaExtractChannelTest : public ::testing::Test {
         EXPECT_EQ(status, 0);
 
         CudaMat temp(pkg_bgr_u8_src.size(), FCVImageType::GRAY_U8);
-        pkg_bgr_u8_dst = {temp, temp, temp};
+        pkg_bgr_u8_dst = {temp.clone(), temp.clone(), temp.clone()};
     }
 
     CudaMat pkg_bgr_u8_src;
@@ -50,8 +50,8 @@ TEST_F(CudaExtractChannelTest, PkgBGRU8PositiveInput) {
         unsigned char* dst_data = reinterpret_cast<unsigned char*>(pkg_bgr_u8_dst[n].data());
 
         for (size_t i = 0; i < index.size(); ++i) {
-            // std::cout << i << ": " << dst_data[index[i]] << std::endl;
-            ASSERT_EQ(groundtruth[n][i], (int)dst_data[index[i]]);
+            // std::cout << i << ":" << n << " - " << (int)groundtruth[n][i] << " : " << (int)dst_data[index[i]] << std::endl;
+            ASSERT_EQ((int)groundtruth[n][i], (int)dst_data[index[i]]);
         }
     }
 }

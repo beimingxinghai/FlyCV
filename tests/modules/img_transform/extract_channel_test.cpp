@@ -28,7 +28,7 @@ class ExtractChannelTest : public ::testing::Test {
         EXPECT_EQ(status, 0);
 
         Mat temp(pkg_bgr_u8_src.size(), FCVImageType::GRAY_U8);
-        pkg_bgr_u8_dst = {temp, temp, temp};
+        pkg_bgr_u8_dst = {temp.clone(), temp.clone(), temp.clone()};
     }
 
     Mat pkg_bgr_u8_src;
@@ -51,7 +51,7 @@ TEST_F(ExtractChannelTest, PkgBGRU8PositiveInput) {
 
         for (size_t i = 0; i < index.size(); ++i) {
             // std::cout << i << ": " << dst_data[index[i]] << std::endl;
-            ASSERT_EQ(groundtruth[n][i], (int)dst_data[index[i]]);
+            ASSERT_EQ((int)groundtruth[n][i], (int)dst_data[index[i]]);
         }
     }
 }
