@@ -35,20 +35,22 @@ public:
     CudaMat();
 
     //! constructor for GpuMat headers pointing to user-allocated data
-    CudaMat(int width, int height, FCVImageType type, void* data, int stride = 0);
-    CudaMat(Size size, FCVImageType type, void* data, int stride = 0);
+    CudaMat(int width, int height, FCVImageType type, void* data, int batch = 1, int stride = 0);
+    CudaMat(Size size, FCVImageType type, void* data, int batch = 1, int stride = 0);
 
     //! constructs CudaMat of the specified size and type
     CudaMat(
             int width,
             int height,
             FCVImageType type,
+            int batch = 1,
             int stride = 0,
             int flag = 0,
             PlatformType platform = PlatformType::CUDA);
     CudaMat(
             Size size,
             FCVImageType type,
+            int batch = 1,
             int stride = 0,
             int flag = 0,
             PlatformType platform = PlatformType::CUDA);
@@ -104,6 +106,9 @@ public:
     //! returns number of channels
     int channels() const;
 
+    //! returns number of batch
+    int batch() const;
+
     //! returns the element size in bytes of step
     int stride() const;
 
@@ -113,7 +118,7 @@ public:
     //! returns element type
     FCVImageType type() const;
 
-    //! returns the type size in bytes
+    //! returns the data type size in bytes
     int type_byte_size() const;
 
     //! returns the total size in bytes
@@ -130,24 +135,24 @@ public:
 
     //! returns reference to pixel location template version
     template<typename T>
-    T& at(int x, int y, int c = 0) {
-        return *reinterpret_cast<T*>(get_pixel_address(x, y, c));
+    T& at(int x, int y, int c = 0, int b = 0) {
+        return *reinterpret_cast<T*>(get_pixel_address(x, y, c, b));
     }
 
     template<typename T>
-    const T& at(int x, int y, int c = 0) const {
-        return *reinterpret_cast<T*>(get_pixel_address(x, y, c));
+    const T& at(int x, int y, int c = 0, int b = 0) const {
+        return *reinterpret_cast<T*>(get_pixel_address(x, y, c, b));
     }
 
     //! returns pointer to pixel location template version
     template <typename T>
-    T* ptr(int x, int y, int c = 0) {
-        return *reinterpret_cast<T*>(get_pixel_address(x, y, c));
+    T* ptr(int x, int y, int c = 0, int b = 0) {
+        return *reinterpret_cast<T*>(get_pixel_address(x, y, c, b));
     }
 
     template <typename T>
-    const T* ptr(int x, int y, int c = 0) const {
-        return *reinterpret_cast<T*>(get_pixel_address(x, y, c));
+    const T* ptr(int x, int y, int c = 0, int b = 0) const {
+        return *reinterpret_cast<T*>(get_pixel_address(x, y, c, b));
     }
 
     //! returns true i the CudaMat data is continuous
@@ -220,6 +225,9 @@ private:
     //! the number of channel
     int _channels;
 
+    //! the number of batch
+    int _batch;
+
     //! a distance between successive rows in bytes; includes the gap if any
     int _stride;
 
@@ -256,11 +264,14 @@ private:
     //! the same pixel interval of different channels
     int _channel_offset;
 
+    //! single batch image byte size
+    int _batch_offset;
+
     //! parse FCVImageType info
     int parse_type_info();
 
     //! get data address point from pixel addrees
-    void* get_pixel_address(int x, int y, int c) const;
+    void* get_pixel_address(int x, int y, int c, int b) const;
 
     //! data allocator, manage different alloc method of image data memory
     std::shared_ptr<BaseAllocator> _allocator;

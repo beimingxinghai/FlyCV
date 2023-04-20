@@ -20,12 +20,13 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
 /**
  * @brief the implementation of perspective matrix_mul_cuda, supported element types: int, f32, double
- * The method returns a temporary object encoding per-element array multiplication,
-   Computed with OpenCL
- * @param dst dst image, supported image type:Mat,the number of channel: 1
- * @param src0 source image, supported image type:Mat, the number of channel: 1.
- * @param src1 another source image, supported image type:Mat, the number of channel: 1.
+ * The method returns a temporary object encoding per-element array multiplication
+ * @param[in] src0 source image, supported image type: CudaMat, the number of channel: 1.
+ * @param[in] src1 another source image, supported image type: CudaMat, the number of channel: 1.
+ * @param[in] stream cuda stream for bound,
+ * default stream: Blocking call, not default stream: Non-Blocking call
+ * @param[out] dst image, supported image type: CudaMat,the number of channel: 1
  */
-FCV_API int cuda_matrix_mul(CudaMat& dst, const CudaMat& src0, const CudaMat& src1);
+FCV_API int matrix_mul(const CudaMat& src0, const CudaMat& src1, CudaMat& dst, Stream& stream = Stream::Null());
 
 G_FCV_NAMESPACE1_END()

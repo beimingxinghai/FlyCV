@@ -20,6 +20,7 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 CudaMat::CudaMat() :
         _width(0),
         _height(0),
+        _batch(0),
         _stride(0),
         _flag(0),
         _type(FCVImageType::GRAY_U8),
@@ -34,9 +35,11 @@ CudaMat::CudaMat(
         int height,
         FCVImageType type,
         void* data,
+        int batch,
         int stride) :
         _width(width),
         _height(height),
+        _batch(batch),
         _stride(stride),
         _flag(0),
         _type(type),
@@ -50,9 +53,11 @@ CudaMat::CudaMat(
         Size size,
         FCVImageType type,
         void* data,
+        int batch,
         int stride) :
         _width(size.width()),
         _height(size.height()),
+        _batch(batch),
         _stride(stride),
         _flag(0),
         _type(type),
@@ -66,11 +71,13 @@ CudaMat::CudaMat(
         int width,
         int height,
         FCVImageType type,
+        int batch,
         int stride,
         int flag,
         PlatformType platform) :
         _width(width),
         _height(height),
+        _batch(batch),
         _stride(stride),
         _flag(flag),
         _type(type),
@@ -94,11 +101,13 @@ CudaMat::CudaMat(
 CudaMat::CudaMat(
         Size size,
         FCVImageType type,
+        int batch,
         int stride,
         int flag,
         PlatformType platform) :
         _width(size.width()),
         _height(size.height()),
+        _batch(batch),
         _flag(flag),
         _stride(stride),
         _type(type),
@@ -123,6 +132,7 @@ CudaMat::CudaMat(
 CudaMat::CudaMat(const CudaMat& m)
     : _width(m._width),
       _height(m._height),
+      _batch(m._batch),
       _stride(m._stride),
       _flag(m._flag),
       _type(m._type),
@@ -139,6 +149,7 @@ CudaMat& CudaMat::operator=(const CudaMat& m) {
 
     _width = m._width;
     _height = m._height;
+    _batch = m._batch;
     _stride = m._stride;
     _flag = m._flag;
     _type = m._type;
@@ -163,6 +174,8 @@ Size2i CudaMat::size() const {
 
 int CudaMat::channels() const { return _channels; }
 
+int CudaMat::batch() const { return _batch; }
+
 int CudaMat::stride() const { return _stride; }
 
 int CudaMat::flag() const { return _flag; }
@@ -186,7 +199,7 @@ void* CudaMat::data() const {
 }
 
 CudaMat CudaMat::clone() const {
-    CudaMat tmp(_width, _height, _type, _flag, _stride, _platform);
+    CudaMat tmp(_width, _height, _type, _batch, _stride, _flag, _platform);
     CUDA_CHECK(cudaMemcpy(tmp.data(), _data, _total_byte_size, cudaMemcpyHostToHost));
     return tmp;
 }
@@ -210,16 +223,20 @@ int CudaMat::parse_type_info() {
 
     if (type_info.layout == LayoutType::SINGLE) {
         _channel_offset = 0;
-        _total_byte_size = _stride * _height;
+        _batch_offset = _stride * _height;
+        _total_byte_size = _batch * _batch_offset;
     } else if (type_info.layout == LayoutType::PACKAGE) {
         _channel_offset = _type_byte_size;
-        _total_byte_size = _stride * _height;
+        _batch_offset = _stride * _height;
+        _total_byte_size = _batch * _batch_offset;
     } else if (type_info.layout == LayoutType::PLANAR) {
         _channel_offset = _stride * _height;
-        _total_byte_size = _stride * _height * _channels;
+        _batch_offset = _stride * _height * _channels;
+        _total_byte_size = _batch * _batch_offset;
     } else if (type_info.layout == LayoutType::YUV) {
         _channel_offset = -1;
-        _total_byte_size = _stride * _height * 3 / 2;
+        _batch_offset = _stride * _height * 3 / 2;
+        _total_byte_size = _batch * _batch_offset;
     } else {
         LOG_ERR("Unsupported image format, can not get extra info!");
         return -1;
@@ -227,28 +244,28 @@ int CudaMat::parse_type_info() {
     return 0;
 }
 
-void* CudaMat::get_pixel_address(int x, int y, int c) const {
-    if (x < 0 || y < 0 || c < 0 || x >= _width
-            || y >= _height || c >= _channels) {
-        LOG_ERR("The pixel coordinate (%d, %d, %d) is out of range", x, y, c);
+void* CudaMat::get_pixel_address(int x, int y, int c, int b) const {
+    if (x < 0 || y < 0 || c < 0 || b < 0 || x >= _width
+            || y >= _height || c >= _channels || b >= _batch) {
+        LOG_ERR("The pixel coordinate (%d, %d, %d, %d) is out of range", x, y, c, b);
         return nullptr;
     }
 
     char* ptr = nullptr;
     char* data = reinterpret_cast<char*>(_data);
     if (_channel_offset >= 0) { // RGB
-        ptr = data + (y * _stride) + (x * _pixel_offset) + (c * _channel_offset);
+        ptr = data + (b * _batch_offset) + (y * _stride) + (x * _pixel_offset) + (c * _channel_offset);
     } else { // YUV
         if (c == 0) { // Y : the same calculation formula
-            ptr = data + y * _stride + x;
+            ptr = data + (b * _batch_offset) + y * _stride + x;
         } else if (c == 1) { // UV planar
             switch (_type) {
             case FCVImageType::NV12:
             case FCVImageType::NV21:
-                ptr = data + _height * _stride + (y >> 1) * _stride + ((x >> 1) << 1);
+                ptr = data + (b * _batch_offset) + _height * _stride + (y >> 1) * _stride + ((x >> 1) << 1);
                 break;
             case FCVImageType::I420:
-                ptr = data + _height * _stride + ((y * _stride) >> 2) + (x >> 1);
+                ptr = data + (b * _batch_offset) + _height * _stride + ((y * _stride) >> 2) + (x >> 1);
                 break;
             default:
                 break;
@@ -257,10 +274,10 @@ void* CudaMat::get_pixel_address(int x, int y, int c) const {
             switch (_type) {
             case FCVImageType::NV12:
             case FCVImageType::NV21:
-                ptr = data + _height * _stride + (y >> 1) * _stride + (x | int(1));
+                ptr = data + (b * _batch_offset) + _height * _stride + (y >> 1) * _stride + (x | int(1));
                 break;
             case FCVImageType::I420:
-                ptr = data + _height * _stride + (_height >> 1) * (_stride >> 1) + (y >> 1) * (_stride >> 1) + (x >> 1);
+                ptr = data + (b * _batch_offset) + _height * _stride + (_height >> 1) * (_stride >> 1) + (y >> 1) * (_stride >> 1) + (x >> 1);
                 break;
             default:
                 break;
