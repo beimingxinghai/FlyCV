@@ -27,7 +27,7 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 /**
  * @brief class for base allocator
  */
-class FCV_CLASS BaseAllocator {
+class FCV_API BaseAllocator {
 public:
     BaseAllocator() {}
     virtual ~BaseAllocator() {}
@@ -37,6 +37,9 @@ public:
      * @param[in] ptr_data_addr，points to an allocated address
      */
     virtual bool get_data(void** ptr_data_addr) const = 0;
+    virtual bool get_data_complex(
+            std::vector<uint64_t*>& phy_addrs,
+            std::vector<uint64_t*>& vir_addrs) const = 0;
 };
 
 /**

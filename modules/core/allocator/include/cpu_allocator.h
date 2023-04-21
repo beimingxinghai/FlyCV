@@ -28,7 +28,7 @@ public:
     bool get_data(void** ptr_data_addr) const override;
     bool get_data_complex(
             std::vector<uint64_t*>& phy_addrs,
-            std::vector<uint64_t*>& vir_addrs) const;
+            std::vector<uint64_t*>& vir_addrs) const override;
 
 private:
     void* _data_addr;

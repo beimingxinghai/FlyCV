@@ -21,7 +21,7 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
 /** 
  * @brief Fills the area bounded by one or more polygons.
- * The function cv::fillPoly fills an area bounded by several polygonal contours.
+ * The function fills an area bounded by several polygonal contours.
  * The function can fill complex areas, for example, areas with holes, contours
  * with self-intersections (some of their parts), and so forth.
  * @param[inout] img Image only support PKG_BGR_U8 or PKG_RGB_U8 format now.
@@ -33,13 +33,13 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
  * @param[in] shift Number of fractional bits in the vertex coordinates.
  * @param[in] offset Optional offset of all points of the contours.
  */
-EXTERN_C FCV_API int fill_poly(
+FCV_API int fill_poly(
         Mat& img,
         const Point** pts,
         const int* npts,
         int ncontours,
         const Scalar& color,
-        LineTypes line_type = LineTypes::LINE_8,
+        LineType line_type = LineType::LINE_8,
         int shift = 0,
         Point offset = Point(0, 0));
 

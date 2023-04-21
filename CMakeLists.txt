@@ -30,8 +30,10 @@ get_git_branch(FLYCV_VERSION)
 get_git_hash(GIT_HASH)
 string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
 
+option(BUILD_C "Turn this ON when you need native C interface" OFF)
 option(BUILD_TEST "Turn this ON when build flycv tests" OFF)
 option(BUILD_BENCHMARK "Turn this ON when build flycv benchmarks" OFF)
+option(BUILD_SAMPLES "Turn this ON when build flycv samples" OFF)
 
 # set the external dependencies
 set(FCV_EXTERNAL_DEPS)
@@ -56,6 +58,13 @@ include(FCVPlatforms)
 # ======================= Build Module List  ===========================
 include(FCVBuildList)
 include(FCVFindDependencies)
+
+if (BUILD_C)
+    set(WITH_FCV_CMAT ON)
+    set(USE_C_API ON)
+else()
+    set(WITH_FCV_CMAT OFF)
+endif()
 
 if(BUILD_SHARED_LIBS)
     set(FCV_TARGET_NAME "flycv_shared")
@@ -88,7 +97,7 @@ configure_file(
 # Add gtest
 if(BUILD_TEST)
     fcv_download_dependency(
-        "git@github.com:google/googletest.git"
+        "https://github.com/google/googletest.git"
         release-1.12.1
         gtest
         ${PROJECT_SOURCE_DIR}/third_party)
@@ -100,7 +109,8 @@ if(BUILD_TEST)
         "Use shared (DLL) run-time lib even when Google Test is built as static lib."
         ON)
     # set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-    add_subdirectory(third_party/gtest EXCLUDE_FROM_ALL)
+    set_if_not_defined(GTEST_DIR third_party/gtest)
+    add_subdirectory(${GTEST_DIR})
     set(GTEST_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third_party/gtest/googletest/include)
     list(APPEND GTEST_LIBRARIES gtest gtest_main)
     cmake_policy(POP)
@@ -110,15 +120,11 @@ if(BUILD_TEST)
     add_subdirectory(tests)
 endif()
 
-if(BUILD_SAMPLES)
-    add_subdirectory(samples)
-endif()
-
 # ============================ Benchmark ==================================
 # Add benchmark
 if(BUILD_BENCHMARK)
     fcv_download_dependency(
-        "git@github.com:google/benchmark.git"
+        "https://github.com/google/benchmark.git"
         v1.6.1
         benchmark
         ${PROJECT_SOURCE_DIR}/third_party)
@@ -126,14 +132,35 @@ if(BUILD_BENCHMARK)
     cmake_policy(PUSH)
     set_if_not_defined(BENCHMARK_DIR third_party/benchmark)
     set(BENCHMARK_ENABLE_TESTING FALSE CACHE BOOL FALSE FORCE)
+    add_subdirectory(${BENCHMARK_DIR})
     set(BENCHMARK_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third_party/benchmark/include)
     list(APPEND BENCHMARK_LIBRARIES benchmark benchmark_main)
-    add_subdirectory(${BENCHMARK_DIR})
     cmake_policy(POP)
 endif(BUILD_BENCHMARK)
 
 if(BUILD_BENCHMARK)
     add_subdirectory(benchmark)
+endif()
+
+# ============================ Sample ==================================
+# Add sample
+if(BUILD_SAMPLES)
+    fcv_download_dependency(
+        "https://github.com/gflags/gflags.git"
+        v2.2.2
+        gflags
+        ${PROJECT_SOURCE_DIR}/third_party)
+
+    cmake_policy(PUSH)
+    set_if_not_defined(GFLAGS_DIR third_party/gflags)
+    set(GFLAGS_INSTALL_HEADERS ON)
+    set(GFLAGS_BUILD_gflags_LIB ON)
+    add_subdirectory(${GFLAGS_DIR})
+    cmake_policy(POP)
+endif(BUILD_SAMPLES)
+
+if(BUILD_SAMPLES)
+    add_subdirectory(samples)
 endif()
 
 # ====================== Print Compile Configuration ======================

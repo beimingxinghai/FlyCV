@@ -25,7 +25,7 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 /**
  * @brief Specify a continuous subinterval
  */
-class FCV_CLASS Range {
+class FCV_API Range {
 public:
     Range() : _start(0), _end(0) {}
 
@@ -67,7 +67,7 @@ private:
  * To use paralell_run interface, you need to implement a subclass that inherits from this,
  * and override the invoke function.
  */
-class FCV_CLASS ParallelTask {
+class FCV_API ParallelTask {
 public:
     virtual ~ParallelTask() {}
     virtual void operator() (const Range& range) const = 0;
@@ -92,7 +92,7 @@ EXTERN_C FCV_API int get_thread_num();
  * @param[in] nstripes Step size processed by each thread.
  * @return excute status, zero : sucess, non-zero: failed.
  */
-EXTERN_C FCV_API int parallel_run(
+FCV_API int parallel_run(
         const Range& range,
         const ParallelTask& body,
         int nstripes = -1);

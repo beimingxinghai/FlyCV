@@ -14,6 +14,7 @@
 
 #include "modules/core/allocator/interface/base_allocator.h"
 #include "modules/core/allocator/include/cpu_allocator.h"
+#include "modules/core/base/include/macro_utils.h"
 
 #ifdef USE_CUDA
 #include "modules/core/allocator/include/cuda_allocator.h"

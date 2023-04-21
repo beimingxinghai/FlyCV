@@ -37,14 +37,14 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
         vdupq_n_f32(0.5f), vdupq_n_f32(-0.5f)))))
 #endif
 
-#define S8_MIN_VAL -128
-#define S8_MAX_VAL 127
-#define U8_MIN_VAL  0
-#define U8_MAX_VAL 255
-#define S16_MIN_VAL -32768
-#define S16_MAX_VAL 32767
-#define U16_MIN_VAL 0
-#define U16_MAX_VAL 65535
+constexpr signed char S8_MIN_VAL = -128;
+constexpr signed char S8_MAX_VAL = 127;
+constexpr unsigned char U8_MIN_VAL = 0;
+constexpr unsigned char U8_MAX_VAL = 255;
+constexpr short S16_MIN_VAL = -32768;
+constexpr short S16_MAX_VAL = 32767;
+constexpr unsigned short U16_MIN_VAL = 0;
+constexpr unsigned short U16_MAX_VAL = 65535;
 
 /**
  * @brief Compute the round of double type data

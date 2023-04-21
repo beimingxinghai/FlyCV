@@ -24,10 +24,10 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
  *        first resize the src to the size of dst in the y channel and uv
  *        channel, and then convert YUV pixel formats to bgr pixel formats
  * @param[in] src input data Mat, nv12, u8 data
- * @param[out] dst ouput data Mat, bgr package, u8 data  and INTER_NEAREST
+ * @param[out] dst ouput data Mat, bgr package, u8 data
  * @param[in] interpolation Interpolation method, currently only support INTER_LINEAR and INTER_NEAREST
 */
-EXTERN_C FCV_API int nv12_to_resize_to_bgr(
+FCV_API int nv12_to_resize_to_bgr(
         Mat& src,
         Mat& dst,
         Size size = Size(0, 0),
@@ -42,7 +42,7 @@ EXTERN_C FCV_API int nv12_to_resize_to_bgr(
  * @param[out] dst ouput data Mat, bgr package, u8 data
  * @param[in] interpolation Interpolation method, currently only support INTER_LINEAR and INTER_NEAREST
 */
-EXTERN_C FCV_API int nv21_to_resize_to_bgr(
+FCV_API int nv21_to_resize_to_bgr(
         Mat& src,
         Mat& dst,
         Size size = Size(0, 0),
