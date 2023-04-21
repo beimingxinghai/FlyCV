@@ -43,7 +43,7 @@ public:
             double* dst,
             int len,
             int cn)
-            :_src(src),
+            : _src(src),
             _dst(dst),
             _len(len),
             _cn(cn) {}
@@ -130,7 +130,7 @@ public:
             const unsigned char* mask,
             int len,
             int cn)
-            :_src(src),
+            : _src(src),
             _dst(dst),
             _mask(mask),
             _len(len),
@@ -230,7 +230,7 @@ public:
             int width,
             int height,
             int cn)
-            :_src(src),
+            : _src(src),
             _dst(dst),
             _src_stride(src_stride),
             _x_start(x_start),
@@ -343,7 +343,7 @@ public:
             double* suqare_sum,
             int len,
             int cn)
-            :_src(src),
+            : _src(src),
             _sum(sum),
             _suqare_sum(suqare_sum),
             _len(len),

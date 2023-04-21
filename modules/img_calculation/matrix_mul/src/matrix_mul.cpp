@@ -30,8 +30,8 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 template<typename T>
 class MatrixMulTask : public ParallelTask {
 public:
-    MatrixMulTask(const Mat& src0, const Mat& src1, Mat& dst) :
-            _src0(src0),
+    MatrixMulTask(const Mat& src0, const Mat& src1, Mat& dst)
+            : _src0(src0),
             _src1(src1),
             _dst(dst) {}
 
@@ -106,9 +106,9 @@ void matrix_multiply_common(
 
 template<typename T>
 class MatrixMulTaskNeon : public ParallelTask {
-    public:
-    MatrixMulTaskNeon(const Mat& src0, const Mat& src1, Mat& dst) :
-            _src0(src0),
+public:
+    MatrixMulTaskNeon(const Mat& src0, const Mat& src1, Mat& dst)
+            : _src0(src0),
             _src1(src1),
             _dst(dst) {}
 

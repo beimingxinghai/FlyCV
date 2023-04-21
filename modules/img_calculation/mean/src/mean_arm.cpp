@@ -35,26 +35,27 @@ typedef int (*SumMaskNeonFunc)(const void*,
 typedef int (*SumRectNeonFunc)(const void*, int, double*,
         int, int, int, int, int);
 typedef int (*SumSqrNeonFunc)(const void*, double*, double*, int, int);
+
 template <typename T>
 class NeonMeanParallelTask : public ParallelTask {
 public:
     /**
      * @brief   任务构造函数，初始化任务之前的资源信息
-     * 
+     *
      */
     NeonMeanParallelTask(
             const T* src,
             double* dst,
             int len,
             int cn)
-            :_src(src),
+            : _src(src),
             _dst(dst),
             _len(len),
             _cn(cn) {}
     /**
      * @brief   任务执行函数，
-     * 
-     * @param   range 
+     *
+     * @param   range
      */
     void operator()(const Range& range) const {
         int k = _cn % 4;
@@ -127,19 +128,19 @@ class U8NeonMeanParallelTask : public ParallelTask {
 public:
     /**
      * @brief   任务构造函数，初始化任务之前的资源信息
-     * 
+     *
      */
     U8NeonMeanParallelTask(
             const void* src,
             double* dst,
             int cn)
-            :_src(src),
+            : _src(src),
             _dst(dst),
             _cn(cn) {}
     /**
      * @brief   任务执行函数，
-     * 
-     * @param   range 
+     *
+     * @param   range
      */
     void operator()(const Range& range) const {
         const unsigned char* src_ptr = static_cast<const unsigned char*>(_src) + _cn * range.start();
@@ -309,7 +310,7 @@ class NeonMaskMeanParallelTask : public ParallelTask {
 public:
     /**
      * @brief   任务构造函数，初始化任务之前的资源信息
-     * 
+     *
      */
     NeonMaskMeanParallelTask(
             const T* src,
@@ -317,7 +318,7 @@ public:
             const unsigned char* mask,
             int len,
             int cn)
-            :_src(src),
+            : _src(src),
             _dst(dst),
             _mask(mask),
             _len(len),
@@ -326,8 +327,8 @@ public:
     }
     /**
      * @brief   任务执行函数，
-     * 
-     * @param   range 
+     *
+     * @param   range
      */
     void operator()(const Range& range) const {
         const T* src_start = _src + _cn * range.start();
@@ -405,15 +406,15 @@ class NeonRectMeanParallelTask : public ParallelTask {
 public:
     /**
      * @brief   Construct a new Rect Mean Parallel Task object
-     * 
-     * @param   src 
-     * @param   src_stride 
-     * @param   dst 
-     * @param   x_start 
-     * @param   y_start 
-     * @param   width 
-     * @param   height 
-     * @param   cn 
+     *
+     * @param   src
+     * @param   src_stride
+     * @param   dst
+     * @param   x_start
+     * @param   y_start
+     * @param   width
+     * @param   height
+     * @param   cn
      */
     NeonRectMeanParallelTask(
             const T* src,
@@ -424,7 +425,7 @@ public:
             int width,
             int height,
             int cn)
-            :_src(src),
+            : _src(src),
             _dst(dst),
             _src_stride(src_stride),
             _x_start(x_start),
@@ -432,10 +433,10 @@ public:
             _width(width),
             _height(height),
             _cn(cn) {}
-    
+
     /**
-     * @brief   
-     * 
+     * @brief
+     *
      * @param   range 输入y的范围
      */
     void operator()(const Range& range) const {
@@ -525,27 +526,27 @@ class U8c1NeonMeanParallelTask : public ParallelTask {
 public:
     /**
      * @brief   Construct a new U8C1NeonMeanParallelTask object
-     * 
-     * @param   src 
-     * @param   src_stride 
-     * @param   dst 
-     * @param   x_start 
-     * @param   y_start 
-     * @param   width 
-     * @param   height 
-     * @param   cn 
+     *
+     * @param   src
+     * @param   src_stride
+     * @param   dst
+     * @param   x_start
+     * @param   y_start
+     * @param   width
+     * @param   height
+     * @param   cn
      */
     U8c1NeonMeanParallelTask(
             const unsigned char* src,
             double* sum,
             double* square_sum)
-            :_src(src),
+            : _src(src),
             _sum(sum),
             _square_sum(square_sum) {}
-    
+
     /**
-     * @brief   
-     * 
+     * @brief
+     *
      * @param   range 输入y的范围
      */
     void operator()(const Range& range) const {
@@ -590,27 +591,27 @@ class U8c2NeonMeanParallelTask : public ParallelTask {
 public:
     /**
      * @brief   Construct a new U8C2NeonMeanParallelTask object
-     * 
-     * @param   src 
-     * @param   src_stride 
-     * @param   dst 
-     * @param   x_start 
-     * @param   y_start 
-     * @param   width 
-     * @param   height 
-     * @param   cn 
+     *
+     * @param   src
+     * @param   src_stride
+     * @param   dst
+     * @param   x_start
+     * @param   y_start
+     * @param   width
+     * @param   height
+     * @param   cn
      */
     U8c2NeonMeanParallelTask(
             const unsigned char* src,
             double* sum,
             double* square_sum)
-            :_src(src),
+            : _src(src),
             _sum(sum),
             _square_sum(square_sum) {}
-    
+
     /**
-     * @brief   
-     * 
+     * @brief
+     *
      * @param   range 输入y的范围
      */
     void operator()(const Range& range) const {
@@ -678,27 +679,27 @@ class U8c3NeonMeanParallelTask : public ParallelTask {
 public:
     /**
      * @brief   Construct a new U8C3NeonMeanParallelTask object
-     * 
-     * @param   src 
-     * @param   src_stride 
-     * @param   dst 
-     * @param   x_start 
-     * @param   y_start 
-     * @param   width 
-     * @param   height 
-     * @param   cn 
+     *
+     * @param   src
+     * @param   src_stride
+     * @param   dst
+     * @param   x_start
+     * @param   y_start
+     * @param   width
+     * @param   height
+     * @param   cn
      */
     U8c3NeonMeanParallelTask(
             const unsigned char* src,
             double* sum,
             double* square_sum)
-            :_src(src),
+            : _src(src),
             _sum(sum),
             _square_sum(square_sum) {}
-    
+
     /**
-     * @brief   
-     * 
+     * @brief
+     *
      * @param   range 输入y的范围
      */
     void operator()(const Range& range) const {
@@ -776,27 +777,27 @@ class U8c4NeonMeanParallelTask : public ParallelTask {
 public:
     /**
      * @brief   Construct a new U8C4NeonMeanParallelTask object
-     * 
-     * @param   src 
-     * @param   src_stride 
-     * @param   dst 
-     * @param   x_start 
-     * @param   y_start 
-     * @param   width 
-     * @param   height 
-     * @param   cn 
+     *
+     * @param   src
+     * @param   src_stride
+     * @param   dst
+     * @param   x_start
+     * @param   y_start
+     * @param   width
+     * @param   height
+     * @param   cn
      */
     U8c4NeonMeanParallelTask(
             const unsigned char* src,
             double* sum,
             double* square_sum)
-            :_src(src),
+            : _src(src),
             _sum(sum),
             _square_sum(square_sum) {}
-    
+
     /**
-     * @brief   
-     * 
+     * @brief
+     *
      * @param   range 输入y的范围
      */
     void operator()(const Range& range) const {
@@ -895,7 +896,6 @@ static int sum_neon_u8(
         double* dst,
         int len,
         int cn) {
-     
     U8NeonMeanParallelTask task(src, dst, cn);
     parallel_run(Range(0, len), task);
     return len;
