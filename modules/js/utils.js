@@ -24,7 +24,7 @@ Module['imread'] = (src) => {
     if (typeof src === 'string') {
         img = document.getElementById(src);
 
-        if (img === null)  {
+        if (img === null) {
             img = document.getElementsByClassName(src);
         }
     } else {
@@ -42,7 +42,6 @@ Module['imread'] = (src) => {
         context = canvas.getContext('2d');
     } else {
         throw new Error('Please input the valid canvas or img id or classname');
-        return;
     }
 
     let imgData = context.getImageData(0, 0, canvas.width, canvas.height);
@@ -55,7 +54,7 @@ Module['imshow'] = (targetCanvas, mat) => {
     if (typeof targetCanvas === 'string') {
         canvas = document.getElementById(targetCanvas);
 
-        if (canvas === null)  {
+        if (canvas === null) {
             canvas = document.getElementsByClassName(targetCanvas);
         }
     } else {
@@ -64,12 +63,10 @@ Module['imshow'] = (targetCanvas, mat) => {
 
     if (!(canvas instanceof HTMLCanvasElement)) {
         throw new Error('Please input the valid canvas element, id or classname.');
-        return;
     }
 
     if (!(mat instanceof fcv.Mat)) {
         throw new Error('Please input the valid fcv.Mat instance.');
-        return;
     }
 
     let image = new fcv.Mat();
