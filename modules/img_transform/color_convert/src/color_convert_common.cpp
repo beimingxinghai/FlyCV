@@ -209,8 +209,8 @@ public:
             bool is_nv12,
             int b_idx,
             int r_idx,
-            int channel): 
-            _src(src), 
+            int channel) : 
+            _src(src),
             _ptr_vu(ptr_vu),
             _dst(dst),
             _src_w(src_w),
@@ -219,7 +219,7 @@ public:
             _is_nv12(is_nv12),
             _b_idx(b_idx),
             _r_idx(r_idx),
-            _channel(channel){}
+            _channel(channel) {}
 
     void operator() (const Range & range) const {
         const int doub_s_stride = _src_stride << 1;
@@ -315,14 +315,14 @@ public:
             const unsigned char* v,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _u(u),
             _v(v),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const int doub_src_stride = _src_stride << 1;
@@ -479,7 +479,7 @@ public:
             bool is_nv12,
             int b_idx,
             int r_idx,
-            int channel): 
+            int channel) :  
             _src(src), 
             _ptr_vu(ptr_vu),
             _dst(dst),
@@ -489,7 +489,7 @@ public:
             _is_nv12(is_nv12),
             _b_idx(b_idx),
             _r_idx(r_idx),
-            _channel(channel){}
+            _channel(channel) {}
 
     void operator() (const Range & range) const {
         const int doub_s_stride = _src_stride << 1;
@@ -584,12 +584,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         
@@ -647,12 +647,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -707,12 +707,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -826,12 +826,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -885,7 +885,7 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
@@ -946,7 +946,7 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
@@ -1000,12 +1000,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -1053,12 +1053,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -1106,12 +1106,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -1172,12 +1172,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -1222,12 +1222,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -1273,12 +1273,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -1324,12 +1324,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -1376,12 +1376,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -1427,12 +1427,12 @@ public:
             unsigned char * dst,
             const int src_w,
             const int src_stride,
-            const int dst_stride): 
+            const int dst_stride) : 
             _src(src), 
             _dst(dst),
             _src_w(src_w),
             _src_stride(src_stride),
-            _dst_stride(dst_stride){}
+            _dst_stride(dst_stride) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _src_stride;
@@ -1492,11 +1492,11 @@ public:
     ConvertPackageToPlanerCTask(const unsigned char* src, 
             unsigned char * dst,
             const int cnt,
-            const int channel): 
+            const int channel) : 
             _src(src), 
             _dst(dst),
             _cnt(cnt),
-            _channel(channel){}
+            _channel(channel) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start() * _channel;
@@ -1557,11 +1557,11 @@ public:
     ConvertPlanerToPackageCTask(const unsigned char* src, 
             unsigned char * dst,
             const int cnt,
-            const int channel): 
+            const int channel) : 
             _src(src), 
             _dst(dst),
             _cnt(cnt),
-            _channel(channel){}
+            _channel(channel) {}
 
     void operator() (const Range & range) const {
         const unsigned char* src_ptr = _src + range.start();
