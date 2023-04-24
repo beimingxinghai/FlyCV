@@ -9,7 +9,7 @@ function(fcv_download_dependency url branch lib_name work_directory)
         then mkdir -p ${work_directory}; fi")
 
     execute_process(COMMAND bash "-c" "if [ ! -d ${lib_name} ]; then \
-        git clone --progress -q --depth=1 -b ${branch} ${url} ${lib_name}; fi"
+        git clone -c advice.detachedHead=false --progress -q --depth=1 -b ${branch} ${url} ${lib_name}; fi"
         WORKING_DIRECTORY ${work_directory})
     #execute_process(COMMAND bash "-c" "if [ -d ${lib_name} ];then cd ${lib_name}; \
     #    if [[ `git rev-parse --abbrev-ref HEAD` != ${branch} && `git tag` != ${branch} ]];then cd .. && rm -rf \
