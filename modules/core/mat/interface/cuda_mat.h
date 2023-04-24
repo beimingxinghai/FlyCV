@@ -30,7 +30,7 @@
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
-class FCV_CLASS CudaMat {
+class FCV_API CudaMat {
 public:
     CudaMat();
 
