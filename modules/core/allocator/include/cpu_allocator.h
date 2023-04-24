@@ -26,9 +26,10 @@ public:
     ~cpu_allocator() override;
 
     bool get_data(void** ptr_data_addr) const override;
+
     bool get_data_complex(
             std::vector<uint64_t*>& phy_addrs,
-            std::vector<uint64_t*>& vir_addrs) const override;
+            std::vector<uint64_t*>& vir_addrs) const;
 
 private:
     void* _data_addr;

@@ -18,8 +18,19 @@
 
 #include "flycv_namespace.h"
 #include "modules/core/base/interface/macro_ns.h"
-#include "modules/core/basic_math/interface/basic_math.h"
 
+__constant__ double FCV_EPSILON = 1e-6;
+__constant__ double FCV_DBL_EPSILON = 1e-9;
+__constant__ double FCV_PI = 3.1415926535897932384626433832795;
+
+__constant__ signed char S8_MIN_VAL = -128;
+__constant__ signed char S8_MAX_VAL = 127;
+__constant__ unsigned char U8_MIN_VAL = 0;
+__constant__ unsigned char U8_MAX_VAL = 255;
+__constant__ short S16_MIN_VAL = -32768;
+__constant__ short S16_MAX_VAL = 32767;
+__constant__ unsigned short U16_MIN_VAL = 0;
+__constant__ unsigned short U16_MAX_VAL = 65535;
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
@@ -95,7 +106,7 @@ __device__ static inline constexpr T fcv_cast_cuda(const float& val) {
  */
 template<class T, class D>
 __device__ bool is_almost_equa_cuda(T a, D b) {
-    return FCV_ABS(a - b) <  FCV_EPSILON ? true : false;
+    return fabs(a - b) <  FCV_EPSILON ? true : false;
 }
 
 G_FCV_NAMESPACE1_END()
