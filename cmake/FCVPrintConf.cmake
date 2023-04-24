@@ -26,12 +26,17 @@ fcv_status_yellow("C++ Compiler: ${CMAKE_CXX_COMPILER}")
 
 # === c/c++ options ===
 fcv_status_purple("C/CXX Flags Configuration:")
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
     fcv_status_yellow("C flags (Release): ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE}")
     fcv_status_yellow("C++ flags (Release): ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
-elseif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     fcv_status_yellow("C flags (Debug): ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_DEBUG}")
     fcv_status_yellow("C++ flags (Debug): ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
+endif()
+
+if(WITH_CUDA_SUPPORT)
+    fcv_status_yellow("CUDA Architectures: ${CMAKE_CUDA_ARCHITECTURES}")
+    fcv_status_yellow("CUDA Flags: ${CMAKE_CUDA_FLAGS}")
 endif()
 
 # === build module list ===
