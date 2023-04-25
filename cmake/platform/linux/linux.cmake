@@ -2,6 +2,7 @@ if(NOT WITH_CUDA_SUPPORT)
 add_compile_options(-Werror=return-type)
 endif()
 add_compile_options(-Wall -Wextra)
+add_compile_options(-Wimplicit-fallthrough=0)
 add_compile_options(-fPIC)    
 add_compile_options(-ffast-math)
 

@@ -483,7 +483,7 @@ TEST_F(CudaMatTest, CopyToPositiveInput) {
     unsigned char* src_data = static_cast<unsigned char*>(pkg_bgr_u8_src.data());
     unsigned char* dst_data = static_cast<unsigned char*>(dst.data());
 
-   for (int i = 0; i < dst.width() * dst.height() * dst.channels(); ++i) {
+    for (int i = 0; i < dst.width() * dst.height() * dst.channels(); ++i) {
         ASSERT_EQ(src_data[i], dst_data[i]);
     }
 }

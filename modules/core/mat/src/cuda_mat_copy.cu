@@ -139,16 +139,30 @@ static void copy_mask(
 // dst = src
 void CudaMat::copy_to(CudaMat& dst, Stream& stream) const {
     if (dst.empty()) {
-        dst = CudaMat(_width, _height, _type, _stride);
+        dst = CudaMat(_width, _height, _type, _batch, _stride);
     }
 
-    unsigned char *sptr = (unsigned char *)_data;
-    unsigned char *dptr = (unsigned char *)dst.data();
-    int dstride = dst.stride();
+    if (dst.batch() != _batch) {
+        LOG_ERR("The batch num does not match!");
+        return;
+    }
 
-    for (int i = 0, j = 0; i < _height && j < dst.height();
-         i++, j++, sptr += _stride, dptr += dstride) {
-        CUDA_CHECK(cudaMemcpy(dptr, sptr, std::min(dstride, _stride), cudaMemcpyHostToHost));
+    unsigned char *src_data = reinterpret_cast<unsigned char *>(_data);
+    unsigned char *dst_data = reinterpret_cast<unsigned char *>(dst.data());
+    int copy_width = FCV_MIN(_width, dst.width());
+    int copy_height = FCV_MIN(_height, dst.height());
+    int copy_stride = FCV_MIN(_stride, dst.stride());
+    int dst_stride = dst.stride();
+
+    for (int i = 0; i < _batch; ++i) {
+        unsigned char* src_start = src_data + _height * _stride * i;
+        unsigned char* dst_start = dst_data + dst.height() * dst_stride * i;
+
+        for (int j = 0; j < copy_height; ++j) {
+            CUDA_CHECK(cudaMemcpy(dst_start, src_start, copy_stride, cudaMemcpyHostToHost));
+            src_start += _stride;
+            dst_start += dst_stride;
+        }
     }
 }
 
@@ -222,6 +236,15 @@ int CudaMat::copy_to(CudaMat& dst, CudaMat& mask, Stream& stream) const {
 @param rect, as specified in Rect_(T x, T y, T width, T height)
 */
 int CudaMat::copy_to(CudaMat& dst, Rect& rect, Stream& stream) const {
+    if (dst.empty()) {
+        dst = CudaMat(rect.width(), rect.height(), _type, _batch);
+    }
+
+    if (dst.batch() != _batch) {
+        LOG_ERR("The batch num does not match!");
+        return -1;
+    }
+
     TypeInfo type_info;
     int status = get_type_info(_type, type_info);
 
@@ -238,25 +261,27 @@ int CudaMat::copy_to(CudaMat& dst, Rect& rect, Stream& stream) const {
     }
 
     Size dst_size(rect.width(), rect.height());
+
     if ((rect.x() + rect.width() > dst.width())
             || (rect.y() + rect.height() > dst.height())) {
         LOG_ERR("The rect is out of the bounds!");
         return -1;
     }
 
-    if (dst.empty()) {
-        dst = CudaMat(rect.width(), rect.height(), _type);
-    }
+    int length = rect.width() * size;
+    unsigned char* src_data = reinterpret_cast<unsigned char*>(_data);
+    unsigned char* dst_data = reinterpret_cast<unsigned char*>(dst.data());
 
-    int stride = rect.width() * size;
-    uint8_t* src_data = reinterpret_cast<uint8_t*>(_data);
-    uint8_t* dst_addr = reinterpret_cast<uint8_t*>(dst.data()) +
-            dst.stride() * rect.y() + rect.x() * size;
+    for (int i = 0; i < _batch; ++i) {
+        unsigned char* src_start = src_data + _height * _stride * i;
+        unsigned char* dst_start = dst_data + dst.height() * dst.stride() * i
+                + rect.y() * dst.stride() + rect.x() * size;
 
-    for (int i = 0; i < rect.height(); ++i) {
-        CUDA_CHECK(cudaMemcpy(dst_addr, src_data, stride, cudaMemcpyHostToHost));
-        src_data += _stride;
-        dst_addr += dst.stride();
+        for (int j = 0; j < rect.height(); ++j) {
+            CUDA_CHECK(cudaMemcpy(dst_start, src_start, length, cudaMemcpyHostToHost));
+            src_start += _stride;
+            dst_start += dst.stride();
+        }
     }
 
     return 0;
