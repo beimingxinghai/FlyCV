@@ -45,14 +45,7 @@ else()
     string(STRIP "${INSTALLED_GPU_CCS_1}" INSTALLED_GPU_CCS_2)
     string(REPLACE " " ";" INSTALLED_GPU_CCS_3 "${INSTALLED_GPU_CCS_2}")
     string(REPLACE "." "" CUDA_ARCH_LIST "${INSTALLED_GPU_CCS_3}")
-    SET(CMAKE_CUDA_ARCHITECTURES
-        ${CUDA_ARCH_LIST}
-        60-real # Pascal
-        70-real # Volta  - gv100/Tesla
-        75-real # Turing - tu10x/GeForce
-        80-real # Ampere - ga100/Tesla
-        86-real # Ampere - ga10x/GeForce
-    )
+    SET(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_LIST})
     set_property(GLOBAL PROPERTY CUDA_ARCHITECTURES "${CUDA_ARCH_LIST}")
 endif()
 endif()

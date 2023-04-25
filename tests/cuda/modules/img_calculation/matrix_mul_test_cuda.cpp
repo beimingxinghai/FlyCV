@@ -34,14 +34,18 @@ protected:
             int offset = j * src0.width() * src0.height() * src0.channels();
             for (int i = 0; i < src0.width() * src0.height() * src0.channels(); ++i) {
                 src0_data[offset + i] = 1.0f / (i + 1);
+                // printf("%f ", src0_data[i + offset]);
             }
+            // printf("\n");
         }
 
         for (int j = 0; j < src1.batch(); j++) {
             int offset = j * src1.width() * src1.height() * src1.channels();
             for (int i = 0; i < src1.width() * src1.height() * src1.channels(); ++i) {
                 src1_data[offset + i] = 1.0f / (i + 1);
+                // printf("%f ", src1_data[i + offset]);
             }
+            // printf("\n");
         }
     }
 
@@ -64,8 +68,10 @@ TEST_P(CudaMatrixMulTest, PositiveInput) {
     for (int j = 0; j < result.batch(); j++) {
         int offset = j * result.width() * result.height() * result.channels();
         for (int i = 0; i < result.width() * result.height() * result.channels(); ++i) {
+            // printf("%f ", result_ptr[i + offset]);
             ASSERT_NEAR(groundtruth[i], result_ptr[i + offset], 0.01f) << j << " " << i;
         }
+        // printf("\n");
     }
 }
 

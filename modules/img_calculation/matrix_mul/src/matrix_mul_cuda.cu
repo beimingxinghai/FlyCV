@@ -20,7 +20,7 @@ G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 #define BLOCK_SIZE 32
 
 template <typename T>
-__global__ void matrix_mul_c1(T* dst, T* src0, T* src1, int w, int h, int k) {
+__global__ void matrix_mul_c1(T* dst, T* src0, T* src1, int w, int h, int k, int b) {
     __shared__ T tile_0[BLOCK_SIZE][BLOCK_SIZE];
     __shared__ T tile_1[BLOCK_SIZE][BLOCK_SIZE];
 
@@ -30,24 +30,28 @@ __global__ void matrix_mul_c1(T* dst, T* src0, T* src1, int w, int h, int k) {
 
     int N = (k + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
-    T data = static_cast<T>(0);
+    T data = 0;
     for (int i = 0; i < N; i++) {
         int row0 = tz * h * k + ty * k + i * BLOCK_SIZE + threadIdx.x;
         int row1 = tz * k * w + w * (i * BLOCK_SIZE + threadIdx.y) + tx;
-        if (tx < w && ty < h) {
+
+        if (tx < w && ty < h && tz < b) {
             tile_0[threadIdx.y][threadIdx.x] = src0[row0];
             tile_1[threadIdx.y][threadIdx.x] = src1[row1];
-
-            __syncthreads();
-
-            for (int j = 0; j < BLOCK_SIZE; j++) {
-                data += tile_0[threadIdx.y][j] * tile_1[j][threadIdx.x];
-            }
-            __syncthreads();
+        } else {
+            tile_0[threadIdx.y][threadIdx.x] = 0;
+            tile_1[threadIdx.y][threadIdx.x] = 0;
         }
+
+        __syncthreads();
+
+        for (int j = 0; j < BLOCK_SIZE; j++) {
+            data += tile_0[threadIdx.y][j] * tile_1[j][threadIdx.x];
+        }
+        __syncthreads();
     }
 
-    if (tx < w && ty < h) {
+    if (tx < w && ty < h && tz < b) {
         dst[tz * w * h + ty * w + tx] = data;
     }
 }
@@ -92,6 +96,8 @@ int matrix_mul(const CudaMat& src0, const CudaMat& src1, CudaMat& dst, Stream& s
     const int grid_x_size = (dst_w + BLOCK_SIZE - 1) / BLOCK_SIZE;
     const int grid_y_size = (dst_h + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
+    // printf("grid: %d %d %d \n", grid_x_size, grid_y_size, dst_b);
+
     const dim3 blocksize(BLOCK_SIZE, BLOCK_SIZE);
     const dim3 gridsize(grid_x_size, grid_y_size, dst_b);
 
@@ -112,19 +118,20 @@ int matrix_mul(const CudaMat& src0, const CudaMat& src1, CudaMat& dst, Stream& s
                                                                    (unsigned short*)src1.data(),
                                                                    dst_w,
                                                                    dst_h,
-                                                                   mat_k);
+                                                                   mat_k,
+                                                                   dst_b);
             break;
         case DataType::SINT32:
             matrix_mul_c1<int><<<gridsize, blocksize>>>(
-                    (int*)dst.data(), (int*)src0.data(), (int*)src1.data(), dst_w, dst_h, mat_k);
+                    (int*)dst.data(), (int*)src0.data(), (int*)src1.data(), dst_w, dst_h, mat_k, dst_b);
             break;
         case DataType::F32:
             matrix_mul_c1<float><<<gridsize, blocksize>>>(
-                    (float*)dst.data(), (float*)src0.data(), (float*)src1.data(), dst_w, dst_h, mat_k);
+                    (float*)dst.data(), (float*)src0.data(), (float*)src1.data(), dst_w, dst_h, mat_k, dst_b);
             break;
         case DataType::F64:
             matrix_mul_c1<double><<<gridsize, blocksize>>>(
-                    (double*)dst.data(), (double*)src0.data(), (double*)src1.data(), dst_w, dst_h, mat_k);
+                    (double*)dst.data(), (double*)src0.data(), (double*)src1.data(), dst_w, dst_h, mat_k, dst_b);
             break;
         default:
             LOG_ERR("The src type is not supported!");

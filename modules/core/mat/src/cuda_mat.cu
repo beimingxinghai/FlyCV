@@ -200,7 +200,7 @@ void* CudaMat::data() const {
 
 CudaMat CudaMat::clone() const {
     CudaMat tmp(_width, _height, _type, _batch, _stride, _flag, _platform);
-    CUDA_CHECK(cudaMemcpy(tmp.data(), _data, _total_byte_size, cudaMemcpyHostToHost));
+    CUDA_CHECK(cudaMemcpy(tmp.data(), _data, _total_byte_size, cudaMemcpyDefault));
     return tmp;
 }
 
