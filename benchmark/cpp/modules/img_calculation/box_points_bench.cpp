@@ -18,23 +18,29 @@
 
 using namespace g_fcv_ns;
 
-class {{ data.class_name }}Bench : public benchmark::Fixture {
+class BoxPointsBench : public benchmark::Fixture {
 public:
     void SetUp(const ::benchmark::State& state) {
         set_thread_num(G_THREAD_NUM);
+        feed_num = state.range(0);
+    }
 
-        // (optional) prepare test data for every case
+public:
+    int feed_num;
+};
+
+BENCHMARK_DEFINE_F(BoxPointsBench, BoxPoints)
+        (benchmark::State& state) {
+    RotatedRect rect(feed_num % 32768, feed_num * 2,
+            feed_num, feed_num / 2.0f, feed_num / 3.0f);
+
+    for (auto _state : state) {
+        Mat points;
+        box_points(rect, points);
     }
 };
 
-BENCHMARK_DEFINE_F({{ data.class_name }}Bench, PlaceHolder)
-        (benchmark::State& state) {
-    // add your code here
-    // don't forget to replace the PlaceHolder with a meaningful one
-};
-
-// don't forget to replace the PlaceHolder with a meaningful one
-BENCHMARK_REGISTER_F({{ data.class_name }}Bench, PlaceHolder)
+BENCHMARK_REGISTER_F(BoxPointsBench, BoxPoints)
         ->Unit(benchmark::kMicrosecond)
-        ->Iterations(100)
+        ->Iterations(2000)
         ->DenseRange(55, 255, 200);
