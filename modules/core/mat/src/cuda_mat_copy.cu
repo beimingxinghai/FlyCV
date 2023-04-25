@@ -89,7 +89,7 @@ static void copy_mask(
                 }
             }
         }
-    } else if ((mcn == 1) && (scn == 4)){
+    } else if ((mcn == 1) && (scn == 4)) {
         int size_algin4 = width & (~3);
         for (; height--; src_data += sstep, dst_data += dstep, mask += mstep) {
             for (x = 0; x < size_algin4; x += 4) {
@@ -136,15 +136,14 @@ static void copy_mask(
     }
 }
 
-// dst = src
-void CudaMat::copy_to(CudaMat& dst, Stream& stream) const {
+int CudaMat::copy_to(CudaMat& dst, Stream& stream) const {
     if (dst.empty()) {
         dst = CudaMat(_width, _height, _type, _batch, _stride);
     }
 
     if (dst.batch() != _batch) {
         LOG_ERR("The batch num does not match!");
-        return;
+        return -1;
     }
 
     unsigned char *src_data = reinterpret_cast<unsigned char *>(_data);
@@ -164,14 +163,14 @@ void CudaMat::copy_to(CudaMat& dst, Stream& stream) const {
             dst_start += dst_stride;
         }
     }
+
+    return 0;
 }
 
 // dst = src if mask != 0
 int CudaMat::copy_to(CudaMat& dst, CudaMat& mask, Stream& stream) const {
     TypeInfo mask_type_info;
-    int status = get_type_info(mask.type(), mask_type_info);
-
-    if (status != 0) {
+    if (get_type_info(mask.type(), mask_type_info) != 0) {
         LOG_ERR("The mask type is not supported!");
         return -1;
     }
@@ -185,26 +184,29 @@ int CudaMat::copy_to(CudaMat& dst, CudaMat& mask, Stream& stream) const {
     }
 
     int mcn = mask.channels();
-    if (mcn != 1 && mcn != channels()) {
+    if (mcn != 1 && mcn != _channels) {
         LOG_ERR("The channels of mask should be the same with src or 1!");
         return -1;
     }
 
-    if (dst.empty()) {
-        dst = CudaMat(_width, _height, _type);
-    }
-
     TypeInfo src_type_info;
-    status = get_type_info(_type, src_type_info);
-
-    if (status != 0) {
+    if (get_type_info(_type, src_type_info) != 0) {
         LOG_ERR("The dst type is not supported!");
         return -1;
     }
 
-    const unsigned char *src_data  = (const unsigned char *)_data;
-    const unsigned char *mask_data = (const unsigned char *)mask.data();
-    unsigned char *dst_data = (unsigned char *)dst.data();
+    if (dst.empty()) {
+        dst = CudaMat(_width, _height, _type, _batch, _stride);
+    }
+
+    if (dst.batch() != _batch) {
+        LOG_ERR("The batch num does not match!");
+        return -1;
+    }
+
+    unsigned char* src_data = reinterpret_cast<unsigned char*>(_data);
+    unsigned char* mask_data = reinterpret_cast<unsigned char*>(mask.data());
+    unsigned char* dst_data = reinterpret_cast<unsigned char*>(dst.data());
 
     switch (src_type_info.data_type) {
     case DataType::UINT8:
@@ -236,19 +238,8 @@ int CudaMat::copy_to(CudaMat& dst, CudaMat& mask, Stream& stream) const {
 @param rect, as specified in Rect_(T x, T y, T width, T height)
 */
 int CudaMat::copy_to(CudaMat& dst, Rect& rect, Stream& stream) const {
-    if (dst.empty()) {
-        dst = CudaMat(rect.width(), rect.height(), _type, _batch);
-    }
-
-    if (dst.batch() != _batch) {
-        LOG_ERR("The batch num does not match!");
-        return -1;
-    }
-
     TypeInfo type_info;
-    int status = get_type_info(_type, type_info);
-
-    if (status != 0) {
+    if (get_type_info(_type, type_info) != 0) {
         LOG_ERR("Unsupport image type!");
         return -1;
     }
@@ -257,6 +248,15 @@ int CudaMat::copy_to(CudaMat& dst, Rect& rect, Stream& stream) const {
 
     if (size <= 0) {
         LOG_ERR("Invalid CudaMat type for copy_to!");
+        return -1;
+    }
+
+    if (dst.empty()) {
+        dst = CudaMat(rect.width(), rect.height(), _type, _batch);
+    }
+
+    if (dst.batch() != _batch) {
+        LOG_ERR("The batch num does not match!");
         return -1;
     }
 

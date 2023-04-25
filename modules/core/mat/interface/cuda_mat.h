@@ -179,7 +179,7 @@ public:
     reallocated.
     @param stream cuda stream for bound, default stream: Blocking call, not default stream: Non-Blocking call
      */
-    void copy_to(CudaMat& dst, Stream& stream = Stream::Null()) const;
+    int copy_to(CudaMat& dst, Stream& stream = Stream::Null()) const;
 
     /** @overload
     @param dst Destination matrix. If it does not have a proper size or type before the operation, it is
