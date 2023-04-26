@@ -18,47 +18,44 @@
 
 using namespace g_fcv_ns;
 
-class CudaMatCopyToTest : public ::testing::Test {
+class MatCopyToTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        ASSERT_EQ(prepare_gray_u8_720p_cuda(gray_u8_src), 0);
-        ASSERT_EQ(prepare_pkg_bgr_u8_720p_cuda(pkg_bgr_u8_src), 0);
+        ASSERT_EQ(prepare_pkg_bgr_u8_720p(pkg_bgr_u8_src), 0);
     }
 
-public:
-    CudaMat gray_u8_src;
-    CudaMat pkg_bgr_u8_src;
+    Mat pkg_bgr_u8_src;
 };
 
-TEST_F(CudaMatCopyToTest, CopyToPositiveInput) {
-    CudaMat dst;
+TEST_F(MatCopyToTest, CopyToPositiveInput) {
+    Mat dst;
 
     pkg_bgr_u8_src.copy_to(dst);
     unsigned char* src_data = static_cast<unsigned char*>(pkg_bgr_u8_src.data());
     unsigned char* dst_data = static_cast<unsigned char*>(dst.data());
 
-    for (int i = 0; i < dst.width() * dst.height() * dst.channels(); ++i) {
+   for (int i = 0; i < dst.width() * dst.height() * dst.channels(); ++i) {
         ASSERT_EQ(src_data[i], dst_data[i]);
     }
 }
 
-TEST_F(CudaMatCopyToTest, CopyToWithMaskPositiveInput) {
-    CudaMat mask(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_U8);
+TEST_F(MatCopyToTest, CopyToWithMaskPositiveInput) {
+    Mat mask(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_U8);
     for (int y = 0; y < mask.height(); y++) {
         for (int x = 0; x < mask.width(); x++) {
             mask.at<char>(x, y) = 1;
         }
     }
 
-    CudaMat src_gray_u8(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_U8);
+    Mat src_gray_u8(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_U8);
     unsigned char min = 0;
     unsigned char max = 255;
-    // init src CudaMat
+    // init src Mat
     int num = IMG_720P_WIDTH * IMG_720P_HEIGHT;
     init_random((unsigned char *)src_gray_u8.data(), num * src_gray_u8.channels(), min, max);
 
-    CudaMat gray_u8_dst;
-    CudaMat pkg_bgr_u8_dst;
+    Mat gray_u8_dst;
+    Mat pkg_bgr_u8_dst;
 
     src_gray_u8.copy_to(gray_u8_dst, mask);
     pkg_bgr_u8_src.copy_to(pkg_bgr_u8_dst, mask);

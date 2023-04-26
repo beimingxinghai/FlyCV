@@ -23,31 +23,11 @@ using namespace g_fcv_ns;
 class CudaResizeTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        int status = 0;
-        gray_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_U8);
-        status = read_binary_file(GRAY_1280X720_U8_BIN, gray_u8_src.data(),
-                gray_u8_src.total_byte_size());
-        ASSERT_EQ(status, 0);
-
-        bgr_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_U8);
-        status = read_binary_file(BGR_1280X720_U8_BIN, bgr_u8_src.data(),
-                bgr_u8_src.total_byte_size());
-        ASSERT_EQ(status, 0);
-
-        bgra_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGRA_U8);
-        status = read_binary_file(BGRA_1280X720_U8_BIN, bgra_u8_src.data(),
-                bgra_u8_src.total_byte_size());
-        ASSERT_EQ(status, 0);
-
-        gray_f32_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_F32);
-        status = read_binary_file(GRAY_1280X720_F32_BIN, gray_f32_src.data(),
-                gray_f32_src.total_byte_size());
-        ASSERT_EQ(status, 0);
-
-        bgr_f32_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_F32);
-        status = read_binary_file(BGR_1280X720_F32_BIN, bgr_f32_src.data(),
-                bgr_f32_src.total_byte_size());
-        ASSERT_EQ(status, 0);
+        ASSERT_EQ(prepare_gray_u8_720p_cuda(gray_u8_src), 0);
+        ASSERT_EQ(prepare_gray_f32_720p_cuda(gray_f32_src), 0);
+        ASSERT_EQ(prepare_pkg_bgr_u8_720p_cuda(bgr_u8_src), 0);
+        ASSERT_EQ(prepare_pkg_bgra_u8_720p_cuda(bgra_u8_src), 0);
+        ASSERT_EQ(prepare_pkg_bgr_f32_720p_cuda(bgr_f32_src), 0);
     }
 
     CudaMat gray_u8_src;

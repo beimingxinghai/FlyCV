@@ -21,20 +21,12 @@ using namespace g_fcv_ns;
 class CudaFlipTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        int status = 0;
-        gray_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_U8);
-        status = read_binary_file(GRAY_1280X720_U8_BIN,
-                gray_u8_src.data(), gray_u8_src.total_byte_size());
-        ASSERT_EQ(status, 0);
-
-        bgr_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_U8);
-        status = read_binary_file(BGR_1280X720_U8_BIN,
-                bgr_u8_src.data(), bgr_u8_src.total_byte_size());
-        ASSERT_EQ(status, 0);
+        ASSERT_EQ(prepare_gray_u8_720p_cuda(gray_u8_src), 0);
+        ASSERT_EQ(prepare_pkg_bgr_u8_720p_cuda(pkg_bgr_u8_src), 0);
     }
 
     CudaMat gray_u8_src;
-    CudaMat bgr_u8_src;
+    CudaMat pkg_bgr_u8_src;
 };
 
 TEST_F(CudaFlipTest, FlipXPositiveInput) {
@@ -62,10 +54,10 @@ TEST_F(CudaFlipTest, FlipXPositiveInput) {
     }
 
     CudaMat bgr_u8_dst;
-    status = flip(bgr_u8_src, bgr_u8_dst, FlipType::X);
+    status = flip(pkg_bgr_u8_src, bgr_u8_dst, FlipType::X);
     ASSERT_EQ(status, 0);
 
-    src_data = (unsigned char*)bgr_u8_src.data();
+    src_data = (unsigned char*)pkg_bgr_u8_src.data();
     dst_data = (unsigned char*)bgr_u8_dst.data();
 
     ptr_src = src_data;
@@ -80,7 +72,7 @@ TEST_F(CudaFlipTest, FlipXPositiveInput) {
         }
 
         ptr_dst -= bgr_u8_dst.stride();
-        ptr_src += bgr_u8_src.stride();
+        ptr_src += pkg_bgr_u8_src.stride();
     }
 }
 
@@ -106,10 +98,10 @@ TEST_F(CudaFlipTest, FlipYPositiveInput) {
     }
 
     CudaMat bgr_u8_dst;
-    status = flip(bgr_u8_src, bgr_u8_dst, FlipType::Y);
+    status = flip(pkg_bgr_u8_src, bgr_u8_dst, FlipType::Y);
     ASSERT_EQ(status, 0);
 
-    src_data = (unsigned char*)bgr_u8_src.data();
+    src_data = (unsigned char*)pkg_bgr_u8_src.data();
     dst_data = (unsigned char*)bgr_u8_dst.data();
 
 
@@ -125,6 +117,6 @@ TEST_F(CudaFlipTest, FlipYPositiveInput) {
         }
 
         dst_data += bgr_u8_dst.stride();
-        src_data += bgr_u8_src.stride();
+        src_data += pkg_bgr_u8_src.stride();
     }
 }

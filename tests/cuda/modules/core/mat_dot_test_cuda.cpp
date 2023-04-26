@@ -18,28 +18,32 @@
 
 using namespace g_fcv_ns;
 
-class CudaCropTest : public ::testing::Test {
+class CudaMatDotTest : public ::testing::Test {
 protected:
     void SetUp() override {
+        ASSERT_EQ(prepare_gray_u8_720p_cuda(gray_u8_src), 0);
+        ASSERT_EQ(prepare_gray_u16_720p_cuda(gray_u16_src), 0);
         ASSERT_EQ(prepare_pkg_bgr_u8_720p_cuda(pkg_bgr_u8_src), 0);
+        ASSERT_EQ(prepare_pkg_bgr_f32_720p_cuda(pkg_bgr_f32_src), 0);
     }
 
+public:
+    CudaMat gray_u8_src;
+    CudaMat gray_u16_src;
     CudaMat pkg_bgr_u8_src;
+    CudaMat pkg_bgr_f32_src;
 };
 
-TEST_F(CudaCropTest, PkgBGRU8PositiveInput) {
-    // Set rect of src for crop
-    Rect area(int(IMG_720P_WIDTH / 4), int(IMG_720P_HEIGHT / 4),
-            int(IMG_720P_WIDTH / 2), int(IMG_720P_HEIGHT / 2));
+TEST_F(CudaMatDotTest, DotPositiveInput) {
+    double result0 = gray_u8_src.dot(gray_u8_src);
+    EXPECT_DOUBLE_EQ(result0, 23713082282);
 
-    CudaMat dst;
-    crop(pkg_bgr_u8_src, dst, area);
+    double result1 = gray_u16_src.dot(gray_u16_src);
+    EXPECT_DOUBLE_EQ(result1, 23713082282);
 
-    unsigned char* dst_data = reinterpret_cast<unsigned char*>(dst.data());
-    std::vector<int> index = {0, 1, 2, 345600, 345601, 345602, 691197, 691198, 691199};
-    std::vector<int> groundtruth = {184, 235, 255, 139, 133, 126, 135, 143, 172};
+    double result2 = pkg_bgr_u8_src.dot(pkg_bgr_u8_src);
+    EXPECT_DOUBLE_EQ(result2, 70768231298);
 
-    for (size_t i = 0; i < index.size(); ++i) {
-        ASSERT_EQ(groundtruth[i], (int)dst_data[index[i]]);
-    }
+    double result3 = pkg_bgr_f32_src.dot(pkg_bgr_f32_src);
+    EXPECT_DOUBLE_EQ(result3, 70768231298);
 }

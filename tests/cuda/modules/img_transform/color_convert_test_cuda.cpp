@@ -21,36 +21,12 @@ using namespace g_fcv_ns;
 class CudaColorConvertTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        int status = 0;
-        nv21_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::NV21);
-        status = read_binary_file(NV21_1280X720_U8_BIN, nv21_src.data(),
-                nv21_src.total_byte_size());
-        EXPECT_EQ(status, 0);
-
-        i420_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::I420);
-        status = read_binary_file(I420_1280X720_U8_BIN, i420_src.data(),
-                i420_src.total_byte_size());
-        EXPECT_EQ(status, 0);
-
-        gray_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_U8);
-        status = read_binary_file(GRAY_1280X720_U8_BIN, gray_u8_src.data(),
-                gray_u8_src.total_byte_size());
-        EXPECT_EQ(status, 0);
-
-        pkg_bgr_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_U8);
-        status = read_binary_file(BGR_1280X720_U8_BIN, pkg_bgr_u8_src.data(),
-                pkg_bgr_u8_src.total_byte_size());
-        EXPECT_EQ(status, 0);
-
-        pkg_rgb_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_RGB_U8);
-        status = read_binary_file(RGB_1280X720_U8_BIN, pkg_rgb_u8_src.data(),
-                pkg_rgb_u8_src.total_byte_size());
-        EXPECT_EQ(status, 0);
-
-        pkg_bgra_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGRA_U8);
-        status = read_binary_file(BGRA_1280X720_U8_BIN, pkg_bgra_u8_src.data(),
-                pkg_bgra_u8_src.total_byte_size());
-        EXPECT_EQ(status, 0);
+        ASSERT_EQ(prepare_gray_u8_720p_cuda(gray_u8_src), 0);
+        ASSERT_EQ(prepare_pkg_bgr_u8_720p_cuda(pkg_bgr_u8_src), 0);
+        ASSERT_EQ(prepare_pkg_rgb_u8_720p_cuda(pkg_rgb_u8_src), 0);
+        ASSERT_EQ(prepare_nv21_720p_cuda(nv21_src), 0);
+        ASSERT_EQ(prepare_i420_720p_cuda(i420_src), 0);
+        ASSERT_EQ(prepare_pkg_bgra_u8_720p_cuda(pkg_bgra_u8_src), 0);
     }
 
     CudaMat i420_src;

@@ -18,18 +18,17 @@
 
 using namespace g_fcv_ns;
 
-class CudaMatConvertToTest : public ::testing::Test {
+class MatConvertToTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        ASSERT_EQ(prepare_pkg_bgr_u8_720p_cuda(pkg_bgr_u8_src), 0);
+        ASSERT_EQ(prepare_pkg_bgr_u8_720p(pkg_bgr_u8_src), 0);
     }
 
-public:
-    CudaMat pkg_bgr_u8_src;
+    Mat pkg_bgr_u8_src;
 };
 
-TEST_F(CudaMatConvertToTest, ConvertToPositiveInput) {
-    CudaMat dst;
+TEST_F(MatConvertToTest, ConvertToPositiveInput) {
+    Mat dst;
     pkg_bgr_u8_src.convert_to(dst, FCVImageType::PKG_BGR_F32, 0.5, 10);
 
     float* dst_data = reinterpret_cast<float*>(dst.data());
@@ -41,24 +40,24 @@ TEST_F(CudaMatConvertToTest, ConvertToPositiveInput) {
     }
 }
 
-TEST_F(CudaMatConvertToTest, ConvertToNegativeInput) {
-    CudaMat dst_gray_u8;
+TEST_F(MatConvertToTest, ConvertToNegativeInput) {
+    Mat dst_gray_u8;
     int status = pkg_bgr_u8_src.convert_to(dst_gray_u8, FCVImageType::GRAY_U8, 0.5, 10);
     EXPECT_NE(status, 0);
 
-    CudaMat dst_gray_u16;
+    Mat dst_gray_u16;
     status = pkg_bgr_u8_src.convert_to(dst_gray_u16, FCVImageType::GRAY_U16, 0.5, 10);
     EXPECT_NE(status, 0);
 
-    CudaMat dst_gray_s32;
+    Mat dst_gray_s32;
     status = pkg_bgr_u8_src.convert_to(dst_gray_s32, FCVImageType::GRAY_S32, 0.5, 10);
     EXPECT_NE(status, 0);
 
-    CudaMat dst_pkg_rgb;
+    Mat dst_pkg_rgb;
     status = pkg_bgr_u8_src.convert_to(dst_pkg_rgb, FCVImageType::PKG_RGB_U8, 0.5, 10);
     EXPECT_NE(status, 0);
 
-    CudaMat dst_pla_bgra;
+    Mat dst_pla_bgra;
     status = pkg_bgr_u8_src.convert_to(dst_pla_bgra, FCVImageType::PLA_BGRA_U8, 0.5, 10);
     EXPECT_NE(status, 0);
 }

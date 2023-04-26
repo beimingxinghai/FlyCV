@@ -221,3 +221,83 @@ int prepare_i420_720p_cmat(CMat** src) {
 }
 
 #endif
+
+#ifdef USE_CUDA
+int prepare_gray_u8_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_U8);
+    int status = read_binary_file(GRAY_1280X720_U8_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_gray_u16_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_U16);
+    int status = read_binary_file(GRAY_1280X720_U16_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_gray_f32_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::GRAY_F32);
+    int status = read_binary_file(GRAY_1280X720_F32_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_pkg_rgb_u8_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_RGB_U8);
+    int status = read_binary_file(RGB_1280X720_U8_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_pkg_bgr_u8_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_U8);
+    int status = read_binary_file(BGR_1280X720_U8_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_pkg_bgr_u8_720p_2_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_U8);
+    int status = read_binary_file(BGR_1280X720_U8_2_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_pkg_bgr_f32_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_F32);
+    int status = read_binary_file(BGR_1280X720_F32_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_pkg_bgra_u8_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGRA_U8);
+    int status = read_binary_file(BGRA_1280X720_U8_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_nv12_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::NV12);
+    int status = read_binary_file(NV12_1280X720_U8_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_nv21_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::NV21);
+    int status = read_binary_file(NV21_1280X720_U8_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+int prepare_i420_720p_cuda(g_fcv_ns::CudaMat& src) {
+    src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::I420);
+    int status = read_binary_file(I420_1280X720_U8_BIN, src.data(),
+            src.total_byte_size());
+    return status;
+}
+
+#endif

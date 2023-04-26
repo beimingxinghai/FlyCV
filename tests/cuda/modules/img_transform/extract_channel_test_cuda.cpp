@@ -21,11 +21,7 @@ using namespace g_fcv_ns;
 class CudaExtractChannelTest : public ::testing::Test {
    protected:
     void SetUp() override {
-        int status = 0;
-        pkg_bgr_u8_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_U8);
-        status = read_binary_file(BGR_1280X720_U8_BIN, pkg_bgr_u8_src.data(),
-                    pkg_bgr_u8_src.total_byte_size());
-        EXPECT_EQ(status, 0);
+        ASSERT_EQ(prepare_pkg_bgr_u8_720p_cuda(pkg_bgr_u8_src), 0);
 
         CudaMat temp(pkg_bgr_u8_src.size(), FCVImageType::GRAY_U8);
         pkg_bgr_u8_dst = {temp.clone(), temp.clone(), temp.clone()};

@@ -19,15 +19,11 @@
 using namespace g_fcv_ns;
 
 TEST(CudaSplitToMemcpyTest, PositiveInput) {
-    int status = 0;
-    CudaMat pkg_bgr_f32_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_F32);
-    status = read_binary_file(BGR_1280X720_F32_BIN, pkg_bgr_f32_src.data(),
-            pkg_bgr_f32_src.total_byte_size());
-    ASSERT_EQ(status, 0);
+    CudaMat pkg_bgr_f32_src;
+    ASSERT_EQ(prepare_pkg_bgr_f32_720p_cuda(pkg_bgr_f32_src), 0);
 
     CudaMat dst;
-
-    status = split_to_memcpy(pkg_bgr_f32_src, &dst);
+    int status = split_to_memcpy(pkg_bgr_f32_src, &dst);
     EXPECT_EQ(status, 0);
 
     std::vector<float> groundtruth = {0.0f, 0.0f, 3.0f, 90.0f,

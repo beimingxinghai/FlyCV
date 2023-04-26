@@ -21,11 +21,7 @@ using namespace g_fcv_ns;
 class CudaSubtractTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        int status = 0;
-        pkg_bgr_f32_src = CudaMat(IMG_720P_WIDTH, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_F32);
-        status = read_binary_file(BGR_1280X720_F32_BIN,
-                pkg_bgr_f32_src.data(), pkg_bgr_f32_src.total_byte_size());
-        EXPECT_EQ(status, 0);
+        ASSERT_EQ(prepare_pkg_bgr_f32_720p_cuda(pkg_bgr_f32_src), 0);
     }
 
     CudaMat pkg_bgr_f32_src;

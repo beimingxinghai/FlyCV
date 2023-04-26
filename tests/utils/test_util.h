@@ -119,3 +119,17 @@ int prepare_nv12_720p_cmat(g_fcv_ns::CMat** src);
 int prepare_nv21_720p_cmat(g_fcv_ns::CMat** src);
 int prepare_i420_720p_cmat(g_fcv_ns::CMat** src);
 #endif
+
+#ifdef USE_CUDA
+int prepare_gray_u8_720p_cuda(g_fcv_ns::CudaMat& src);
+int prepare_gray_u16_720p_cuda(g_fcv_ns::CudaMat& src);
+int prepare_gray_f32_720p_cuda(g_fcv_ns::CudaMat& src);
+int prepare_pkg_rgb_u8_720p_cuda(g_fcv_ns::CudaMat& src);
+int prepare_pkg_bgr_u8_720p_cuda(g_fcv_ns::CudaMat& src);
+int prepare_pkg_bgr_u8_720p_2_cuda(g_fcv_ns::CudaMat& src);
+int prepare_pkg_bgr_f32_720p_cuda(g_fcv_ns::CudaMat& src);
+int prepare_pkg_bgra_u8_720p_cuda(g_fcv_ns::CudaMat& src);
+int prepare_nv12_720p_cuda(g_fcv_ns::CudaMat& src);
+int prepare_nv21_720p_cuda(g_fcv_ns::CudaMat& src);
+int prepare_i420_720p_cuda(g_fcv_ns::CudaMat& src);
+#endif
