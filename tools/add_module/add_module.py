@@ -36,7 +36,7 @@ BUILD_LIST_OUTPUT_PATH = 'cmake/FCVBuildList.cmake'
 FCV_H_OUTPUT_PATH = 'include/flycv.h.in'
 FCV_GTEST_C_PATH = 'tests/c'
 FCV_GTEST_CPP_PATH = 'tests/cpp'
-FCV_BENCHMARK_PATH = 'benchmark/'
+FCV_BENCHMARK_PATH = 'benchmark/cpp'
 
 
 def print_usage():
