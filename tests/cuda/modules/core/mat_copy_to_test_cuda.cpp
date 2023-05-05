@@ -23,22 +23,89 @@ protected:
     void SetUp() override {
         ASSERT_EQ(prepare_gray_u8_720p_cuda(gray_u8_src), 0);
         ASSERT_EQ(prepare_pkg_bgr_u8_720p_cuda(pkg_bgr_u8_src), 0);
+        ASSERT_EQ(prepare_pkg_bgr_u8_720p_cuda_batch(pkg_bgr_u8_batch_src, 3), 0);
     }
 
 public:
     CudaMat gray_u8_src;
     CudaMat pkg_bgr_u8_src;
+    CudaMat pkg_bgr_u8_batch_src;
 };
 
-TEST_F(CudaMatCopyToTest, CopyToPositiveInput) {
+TEST_F(CudaMatCopyToTest, CopyToSingleBatch) {
     CudaMat dst;
+    int status = pkg_bgr_u8_src.copy_to(dst);
+    ASSERT_EQ(status, 0);
 
-    pkg_bgr_u8_src.copy_to(dst);
     unsigned char* src_data = static_cast<unsigned char*>(pkg_bgr_u8_src.data());
     unsigned char* dst_data = static_cast<unsigned char*>(dst.data());
 
     for (int i = 0; i < dst.width() * dst.height() * dst.channels(); ++i) {
         ASSERT_EQ(src_data[i], dst_data[i]);
+    }
+}
+
+TEST_F(CudaMatCopyToTest, CopyToMultiBatch) {
+    unsigned char* src_data = reinterpret_cast<unsigned char*>(pkg_bgr_u8_batch_src.data());
+
+    CudaMat dst;
+    int status = pkg_bgr_u8_batch_src.copy_to(dst);
+    ASSERT_EQ(status, 0);
+
+    unsigned char* dst_data = static_cast<unsigned char*>(dst.data());
+    ASSERT_EQ(pkg_bgr_u8_batch_src.batch(), dst.batch());
+
+    for (int i = 0; i < dst.width() * dst.height()
+            * dst.channels() * dst.batch(); ++i) {
+        ASSERT_EQ(src_data[i], dst_data[i]);
+    }
+}
+
+TEST_F(CudaMatCopyToTest, CopyToWithRectSingleBatch) {
+    Rect rect(10, 20, 50, 100);
+    CudaMat dst(640, 360, FCVImageType::PKG_BGR_U8);
+
+    unsigned char* dst_data = reinterpret_cast<unsigned char*>(dst.data());
+
+    for (int i = 0; i < dst.total_byte_size(); ++i) {
+        dst_data[i] = 1;
+    }
+
+    int status = pkg_bgr_u8_src.copy_to(dst, rect);
+    ASSERT_EQ(status, 0);
+
+    for (int y = 0; y < 100; ++y) {
+        for (int x = 0; x < 50; ++x) {
+            for (int c = 0; c < 3; ++c) {
+                ASSERT_EQ(pkg_bgr_u8_src.at<unsigned char>(x, y, c),
+                        dst.at<unsigned char>(x + 10, y + 20, c));
+            }
+        }
+    }
+}
+
+TEST_F(CudaMatCopyToTest, CopyToWithRectMultiBatch) {
+    Rect rect(10, 20, 50, 100);
+    CudaMat dst(640, 360, FCVImageType::PKG_BGR_U8, pkg_bgr_u8_batch_src.batch());
+
+    unsigned char* dst_data = reinterpret_cast<unsigned char*>(dst.data());
+
+    for (int i = 0; i < dst.total_byte_size(); ++i) {
+        dst_data[i] = 1;
+    }
+
+    int status = pkg_bgr_u8_batch_src.copy_to(dst, rect);
+    ASSERT_EQ(status, 0);
+
+    for (int i = 0; i < pkg_bgr_u8_batch_src.batch(); ++i) {
+        for (int y = 0; y < 100; ++y) {
+            for (int x = 0; x < 50; ++x) {
+                for (int c = 0; c < 3; ++c) {
+                    ASSERT_EQ(pkg_bgr_u8_batch_src.at<unsigned char>(x, y, c, i),
+                            dst.at<unsigned char>(x + 10, y + 20, c, i));
+                }
+            }
+        }
     }
 }
 

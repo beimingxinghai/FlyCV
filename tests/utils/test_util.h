@@ -132,4 +132,6 @@ int prepare_pkg_bgra_u8_720p_cuda(g_fcv_ns::CudaMat& src);
 int prepare_nv12_720p_cuda(g_fcv_ns::CudaMat& src);
 int prepare_nv21_720p_cuda(g_fcv_ns::CudaMat& src);
 int prepare_i420_720p_cuda(g_fcv_ns::CudaMat& src);
+
+int prepare_pkg_bgr_u8_720p_cuda_batch(g_fcv_ns::CudaMat& src, int batch_num);
 #endif

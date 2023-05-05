@@ -300,4 +300,15 @@ int prepare_i420_720p_cuda(g_fcv_ns::CudaMat& src) {
     return status;
 }
 
+int prepare_pkg_bgr_u8_720p_cuda_batch(g_fcv_ns::CudaMat& src, int batch_num) {
+    src = CudaMat(IMG_720P_HEIGHT, IMG_720P_HEIGHT, FCVImageType::PKG_BGR_U8, batch_num);
+    unsigned char* src_data = reinterpret_cast<unsigned char*>(src.data());
+
+    for (int i = 0; i < src.total_byte_size(); ++i) {
+        src_data[i] = i % 256;
+    }
+
+    return 0;
+}
+
 #endif
