@@ -31,7 +31,6 @@ if(BUILD_FCV_MEDIA_IO)
             include(external/libjpeg-turbo)
             add_definitions(-DWITH_LIB_JPEG_TURBO)
         endif(WITH_LIB_JPEG_TURBO)
-
     endif(WITH_FCV_IMGCODECS)
 endif(BUILD_FCV_MEDIA_IO)
 

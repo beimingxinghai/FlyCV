@@ -20,7 +20,7 @@
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
-__constant__ double gpu_scaler[4];
+static __constant__ double gpu_scaler[4];
 
 template <typename T>
 __global__ void subtract_kernel(

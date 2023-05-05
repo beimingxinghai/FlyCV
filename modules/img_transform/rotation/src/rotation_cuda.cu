@@ -60,7 +60,7 @@ int transpose(const CudaMat& src, CudaMat& dst, Stream& stream) {
     int coherent_flag = CUDADeviceInfo::get_instance()->device_attrs[device_id].coherent_flag;
 
     if (coherent_flag) {
-        CUDA_CHECK(cudaMemPrefetchAsync(src.data(), src.total_byte_size(), device_id));
+        CUDA_CHECK(cudaMemPrefetchAsync(src.data(), src.total_byte_size() - 1, device_id));
     }
 
     int channel = src.channels();
