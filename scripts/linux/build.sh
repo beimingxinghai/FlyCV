@@ -30,11 +30,32 @@ case ${index} in
     ;;
 esac
 
-if [ -d ${build_dir} ];then
-    rm -rf ${build_dir}
+if [ $# -lt 2 ];then
+    echo "Do you need clean previous project files? [Y/N]"
+    read -n 1 index
+    echo ""
+else
+    index=${2}
 fi
 
+case ${index} in
+    Y|y)
+        rebuild=1
+        ;;
+    N|n)
+        rebuild=0
+        ;;
+    *)
+        echo "Unsupported arguments"
+        exit 1
+    ;;
+esac
+
 mkdir -p ${build_dir}
+if [ ${rebuild} -eq 1 ];then
+    echo "clean previous project files ..."
+    rm -rf ${build_dir}/*
+fi
 
 cd ${build_dir} || exit 0
 
