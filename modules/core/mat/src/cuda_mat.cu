@@ -142,6 +142,55 @@ CudaMat::CudaMat(const CudaMat& m)
     parse_type_info();
 }
 
+CudaMat::CudaMat(const CudaMat& m, const Range& height_range, const Range& width_range)
+        : _width(m._width),
+          _height(m._height),
+          _batch(m._batch),
+          _stride(m._stride),
+          _flag(m._flag),
+          _type(m._type),
+          _platform(PlatformType::CUDA),
+          _data(m._data),
+          _allocator(m._allocator) {
+    parse_type_info();
+    if (height_range != Range::all() && height_range != Range(0, m._height)) {
+        if (!(0 <= height_range.start() && height_range.start() <= height_range.end()
+              && height_range.end() <= m._height)) {
+            LOG_ERR("height range is not correct!");
+            return;
+        }
+        _height = height_range.size();
+        _data = (char*)_data + _stride * height_range.start();
+        _flag |= 0b100000;
+    }
+
+    if (width_range != Range::all() && width_range != Range(0, m._width)) {
+        if (!(0 <= width_range.start() && width_range.start() <= width_range.end() && width_range.end() <= m._width)) {
+            LOG_ERR("width range is not correct!");
+            return;
+        }
+        _width = width_range.size();
+        _data = (char*)_data + width_range.start() * _pixel_offset;
+        _flag |= 0b100000;
+    }
+
+    if (_height <= 0 || _width <= 0) {
+        _height = _width = 0;
+    }
+}
+
+inline CudaMat CudaMat::height_range(int startrow, int endrow) const {
+     return CudaMat(*this, Range(startrow, endrow), Range::all());
+}
+
+inline CudaMat CudaMat::height_range(const Range& r) const { return CudaMat(*this, r, Range::all()); }
+
+inline CudaMat CudaMat::width_range(int startcol, int endcol) const {
+     return CudaMat(*this, Range::all(), Range(startcol, endcol));
+}
+
+inline CudaMat CudaMat::width_range(const Range& r) const { return CudaMat(*this, Range::all(), r); }
+
 CudaMat& CudaMat::operator=(const CudaMat& m) {
     if (this == &m) {
         return *this;
@@ -186,6 +235,14 @@ int CudaMat::type_byte_size() const {
     return _type_byte_size;
 }
 
+int CudaMat::pixel_byte_size() const {
+    return _pixel_offset;
+}
+
+int CudaMat::batch_byte_size() const {
+    return _batch_offset;
+}
+
 uint64_t CudaMat::total_byte_size() const {
     return _total_byte_size;
 }
@@ -199,8 +256,8 @@ void* CudaMat::data() const {
 }
 
 CudaMat CudaMat::clone() const {
-    CudaMat tmp(_width, _height, _type, _batch, _stride, _flag, _platform);
-    CUDA_CHECK(cudaMemcpy(tmp.data(), _data, _total_byte_size, cudaMemcpyDefault));
+    CudaMat tmp;
+    copy_to(tmp);
     return tmp;
 }
 

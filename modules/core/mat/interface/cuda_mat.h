@@ -27,6 +27,7 @@
 #include "modules/core/basic_math/interface/basic_math.h"
 #include "modules/core/base/interface/cuda_types.h"
 #include "modules/core/mat/interface/mat.h"
+#include "modules/core/parallel/interface/parallel.h"
 
 G_FCV_NAMESPACE1_BEGIN(g_fcv_ns)
 
@@ -58,6 +59,18 @@ public:
 
     //! copy constructor
     CudaMat(const CudaMat& m);
+
+    /**
+    @param m Array that (as a whole or partly) is assigned to the constructed matrix. No data is copied
+    by these constructors. Instead, the header pointing to m data or its sub-array is constructed and
+    associated with it. The reference counter, if any, is incremented. So, when you modify the matrix
+    formed using such a constructor, you also modify the corresponding elements of m . If you want to
+    have an independent copy of the sub-array, use Mat::clone() .
+    @param height_range Range of the m rows to take. As usual, the range start is inclusive and the range
+    end is exclusive. Use Range::all() to take all the rows.
+    @param width_range Range of the m columns to take. Use Range::all() to take all the columns.
+    */
+    CudaMat(const CudaMat& m, const Range& height_range, const Range& width_range = Range::all());
 
     //! asignment constructor
     CudaMat& operator=(const CudaMat& m);
@@ -120,6 +133,12 @@ public:
 
     //! returns the data type size in bytes
     int type_byte_size() const;
+
+    //! returns the pixel size in bytes, include channel
+    int pixel_byte_size() const;
+
+    //! returns the single batch size in bytes
+    int batch_byte_size() const;
 
     //! returns the total size in bytes
     uint64_t total_byte_size() const;
@@ -217,6 +236,32 @@ public:
      */
     bool invert(CudaMat& dst, Stream& stream = Stream::Null()) const;
 
+    /** @brief Creates a matrix header for the specified row span.
+    The method makes a new header for the specified row span of the matrix. Similarly to Mat::row and
+    Mat::col , this is an O(1) operation.
+    @param startrow An inclusive 0-based start index of the row span.
+    @param endrow An exclusive 0-based ending index of the row span.
+     */
+    CudaMat height_range(int startrow, int endrow) const;
+
+    /** @overload
+    @param r Range structure containing both the start and the end indices.
+    */
+    CudaMat height_range(const Range& r) const;
+
+    /** @brief Creates a matrix header for the specified column span.
+    The method makes a new header for the specified column span of the matrix. Similarly to Mat::row and
+    Mat::col , this is an O(1) operation.
+    @param startcol An inclusive 0-based start index of the column span.
+    @param endcol An exclusive 0-based ending index of the column span.
+     */
+    CudaMat width_range(int startcol, int endcol) const;
+
+    /** @overload
+    @param r Range structure containing both the start and the end indices.
+    */
+    CudaMat width_range(const Range& r) const;
+
 private:
     //! the number of width and height
     int _width;
@@ -237,9 +282,10 @@ private:
       - 1: use general memory
       - 2: use constant memory
     - use memory pool 1bit
-      - 4: use memory pool 0: not use 1: use
+      - 3: use memory pool 0: not use 1: use
     - continuity flag 1bit
-      - 5: whether data address continue 0: continue 1: not continue
+      - 4: whether data address continue 0: continue 1: not continue
+      - 5: whether mat is sub matrix 0: not is 1: is
     */
     int _flag;
 

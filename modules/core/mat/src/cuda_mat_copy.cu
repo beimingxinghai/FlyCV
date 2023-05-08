@@ -138,7 +138,7 @@ static void copy_mask(
 
 int CudaMat::copy_to(CudaMat& dst, Stream& stream) const {
     if (dst.empty()) {
-        dst = CudaMat(_width, _height, _type, _batch, _stride);
+        dst = CudaMat(_width, _height, _type, _batch, _width * _pixel_offset);
     }
 
     if (dst.batch() != _batch) {
@@ -154,11 +154,11 @@ int CudaMat::copy_to(CudaMat& dst, Stream& stream) const {
     int dst_stride = dst.stride();
 
     for (int i = 0; i < _batch; ++i) {
-        unsigned char* src_start = src_data + _height * _stride * i;
-        unsigned char* dst_start = dst_data + dst.height() * dst_stride * i;
+        unsigned char* src_start = src_data + _batch_offset * i;
+        unsigned char* dst_start = dst_data + dst.batch_byte_size() * i;
 
         for (int j = 0; j < copy_height; ++j) {
-            CUDA_CHECK(cudaMemcpy(dst_start, src_start, copy_stride, cudaMemcpyHostToHost));
+            CUDA_CHECK(cudaMemcpy(dst_start, src_start, copy_stride, cudaMemcpyDefault));
             src_start += _stride;
             dst_start += dst_stride;
         }
@@ -278,7 +278,7 @@ int CudaMat::copy_to(CudaMat& dst, Rect& rect, Stream& stream) const {
                 + rect.y() * dst.stride() + rect.x() * size;
 
         for (int j = 0; j < rect.height(); ++j) {
-            CUDA_CHECK(cudaMemcpy(dst_start, src_start, length, cudaMemcpyHostToHost));
+            CUDA_CHECK(cudaMemcpy(dst_start, src_start, length, cudaMemcpyDefault));
             src_start += _stride;
             dst_start += dst.stride();
         }

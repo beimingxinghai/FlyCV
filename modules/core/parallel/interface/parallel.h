@@ -15,6 +15,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <limits.h>
 
 #include "flycv_namespace.h"
 #include "modules/core/base/interface/macro_ns.h"
@@ -57,10 +58,26 @@ public:
         return _start == _end;
     }
 
+    static Range all() {
+        return Range(INT_MIN, INT_MAX);
+    }
+
 private:
     int _start;
     int _end;
 };
+
+static inline
+bool operator == (const Range& r1, const Range& r2)
+{
+    return r1.start() == r2.start() && r1.end() == r2.end();
+}
+
+static inline
+bool operator != (const Range& r1, const Range& r2)
+{
+    return !(r1 == r2);
+}
 
 /**
  * @brief Virtual base class for thread tasks.
