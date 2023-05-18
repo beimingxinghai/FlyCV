@@ -148,7 +148,7 @@ void remap_linear_u8_const(
 
         for (int x = 0; x <= width; x++) {
             /* compute the x & y coordinates which are always in the area of [0 0 width height],
-            in the circumstances of value of src_xy_row is negative, convert it to unsigned short, 
+            in the circumstances of value of src_xy_row is negative, convert it to unsigned short,
             the value will the curInlier will set to 0, and skip out*/
             bool cur_inter = x < width ? (unsigned short)src_xy_row[x * 2] < width1
                     && (unsigned short)src_xy_row[x * 2 + 1] < height1 : !pre_inter;
@@ -402,6 +402,7 @@ void remap_linear_f32_const(
     for (int y = 0; y < height; y++) {
         bool pre_inter = false;
         int offset = width * y;
+        // 获得系数
         short* __restrict src_xy_row = (short *)(src_xy + (offset << 1));
         short* __restrict coeffs_row = (short *)(coeffs + offset);
         float* dst_row = (float *)(dst + dst_stride * y);
@@ -503,11 +504,16 @@ static void remap_linear_x_const_f32_common(
         int sxy_stride,
         const int channel,
         const Scalar border_value) {
+    // 1. 分块 128 * 32
     int bh0 = FCV_MIN(BLOCK_SIZE_HEIGHT, dst_height);
     int bw0 = FCV_MIN(BLOCK_SIZE_WIDTH * BLOCK_SIZE_HEIGHT / bh0, dst_width);
 
+    // 2. 查找表，每次存储4个系数
+    // remap 四个点的系数为 ∆x * ∆y， ∆x * (1-∆y)， (1-∆x) * ∆y， (1-∆x) * (1-∆y)
     int tab_len = (AREA_SZ << 2) * sizeof(float);
+    // src x/y坐标映射长度
     int src_xy_len = (bh0 * bw0 * 2) * sizeof(short);
+    // 双线性查找系数长度
     int coeffs_len = (AREA_SZ) * sizeof(short);
 
     float *tab = (float *)malloc(tab_len); //store the coefficient four points coordinata
@@ -518,6 +524,7 @@ static void remap_linear_x_const_f32_common(
     memset(src_xy, 0, src_xy_len);
     memset(coeffs, 0, coeffs_len);
 
+    // 3. 初始化映射系数
     init_table_2d_coeff_f32(tab, WARP_INTER_TAB_SIZE);
 
     int i = 0, j = 0;
@@ -530,10 +537,12 @@ static void remap_linear_x_const_f32_common(
             float* dst_ptr = (float *)(ptr_dst + j * channel);
 
             for (int y = 0; y < bh; y++) {
+                // 获的系数起始位置
                 short* map_row = (short *)(src_xy + (bw * (y << 1)));
                 short* coeffs_row = (short *)(coeffs + (bw * y));
                 int y_ = y + i;
 
+                // 活的映射值，更新系数
                 const float* sx_row = sx + y_ * sxy_stride;
                 const float* sy_row = sy + y_ * sxy_stride;
                 for (int x = 0 ; x < bw; x++ ) {
@@ -549,6 +558,7 @@ static void remap_linear_x_const_f32_common(
                 }
             }
 
+            // 实际映射
             remap_linear_f32_const(bh, bw, src, src_width, src_height, src_stride,
                     dst_ptr, dst_stride, src_xy, coeffs, channel, tab, border_value);
         }
